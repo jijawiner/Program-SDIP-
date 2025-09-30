@@ -1,29 +1,38 @@
-<div>
+<!-- 
+  ⚠️ หมายเหตุ: ไฟล์นี้ไม่ถูกใช้งานแล้ว
+  Dashboard จะถูกสร้างแบบ Dynamic จาก Code.gs
+  ผ่านฟังก์ชัน getDashboardHtmlWithUserData()
+  
+  ไฟล์นี้เก็บไว้เป็น Backup เท่านั้น
+-->
+
+<div style="
+  font-family: 'Kanit', sans-serif;
+  padding: 20px;
+  background: #f5f7fa;
+  min-height: 100vh;
+  text-align: center;
+">
+  <h1 style="color: #2c3e50; margin: 40px 0;">
+    📮 Smart Delivery Insight
+  </h1>
+  <p style="color: #7f8c8d; font-size: 18px;">
+    Dashboard กำลังโหลด...
+  </p>
+  <div style="
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e9ecef;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  "></div>
+  
   <style>
-    .dashboard-container {
-      padding: 20px;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    .logout-button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .logout-button:hover {
-      background-color: #5a6268;
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
-  <div class="dashboard-container">
-    <h1>ยินดีต้อนรับ!</h1>
-    <p>คุณได้เข้าสู่ระบบ Smart Delivery Insight postman เรียบร้อยแล้ว</p>
-    <p>Username: <strong id="loggedInUser"></strong> | Role: <strong id="userRole"></strong></p>
-    <button class="logout-button" id="logoutButton">Logout</button>
-  </div>
 </div>
