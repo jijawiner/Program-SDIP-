@@ -1,0 +1,133 @@
+<style>
+  /* --- กำหนดตัวแปรสีและฟอนต์หลัก --- */
+  :root {
+    --primary-red: #D7121A; /* สีแดงไปรษณีย์ไทย */
+    --light-grey: #f7f7f7;
+    --dark-grey: #333;
+    --medium-grey: #888;
+    --border-grey: #ddd;
+    --font-main: 'Kanit', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-main);
+    background-color: var(--light-grey);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  /* --- กล่องล็อคอินหลัก --- */
+  .login-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 340px;
+    text-align: center;
+    border-top: 5px solid var(--primary-red);
+    transition: transform 0.3s ease;
+  }
+
+  .login-container:hover {
+      transform: translateY(-5px); /* เพิ่ม animation เล็กน้อยเมื่อนำเมาส์ไปชี้ */
+  }
+
+  /* --- โลโก้และหัวข้อ --- */
+  .logo {
+    margin-bottom: 15px;
+    color: var(--primary-red);
+  }
+  
+  .title-container h2 {
+    color: var(--dark-grey);
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .title-container p {
+    color: var(--medium-grey);
+    margin: 5px 0 25px 0;
+    font-size: 16px;
+  }
+
+  /* --- กล่องใส่ Username/Password --- */
+  .input-group {
+    position: relative;
+    margin-bottom: 25px;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 12px 10px;
+    border: 1px solid var(--border-grey);
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: transparent;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+  }
+
+  /* --- เอฟเฟกต์ Floating Label ที่ดู Smart --- */
+  .input-group label {
+    position: absolute;
+    top: 13px;
+    left: 10px;
+    color: var(--medium-grey);
+    pointer-events: none;
+    transition: all 0.2s ease-out;
+    background-color: white;
+    padding: 0 4px;
+  }
+  
+  .input-group input:focus + label,
+  .input-group input:not(:placeholder-shown) + label {
+    top: -10px;
+    left: 8px;
+    font-size: 12px;
+    color: var(--primary-red);
+  }
+
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--primary-red);
+  }
+
+  /* --- ปุ่ม Login --- */
+  button {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: var(--font-main);
+    font-weight: 700;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    margin-top: 10px;
+  }
+
+  button:hover {
+    background-color: #b80f15;
+    box-shadow: 0 4px 15px rgba(215, 18, 26, 0.3);
+  }
+  
+  button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* --- ข้อความสถานะ --- */
+  #status {
+    margin-top: 20px;
+    color: var(--primary-red);
+    font-weight: bold;
+    min-height: 20px; /* ป้องกันไม่ให้ Layout ขยับตอนมีข้อความ */
+  }
+</style>
