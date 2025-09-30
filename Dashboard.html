@@ -1,0 +1,29 @@
+<div>
+  <style>
+    .dashboard-container {
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .logout-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .logout-button:hover {
+      background-color: #5a6268;
+    }
+  </style>
+  <div class="dashboard-container">
+    <h1>ยินดีต้อนรับ!</h1>
+    <p>คุณได้เข้าสู่ระบบ Smart Delivery Insight postman เรียบร้อยแล้ว</p>
+    <p>Username: <strong id="loggedInUser"></strong> | Role: <strong id="userRole"></strong></p>
+    <button class="logout-button" id="logoutButton">Logout</button>
+  </div>
+</div>
