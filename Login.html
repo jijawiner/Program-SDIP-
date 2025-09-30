@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Smart Delivery Insight - Postman Login</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #ff4444 0%, #cc0000 50%, #990000 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Background Pattern */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 0%, transparent 50%);
+      background-size: 400px 400px;
+      animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(120deg); }
+      66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+    
+    .login-container {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      padding: 50px 40px;
+      border-radius: 24px;
+      box-shadow: 
+        0 25px 50px rgba(0,0,0,0.25),
+        0 0 0 1px rgba(255,255,255,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .postman-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #ff4444, #cc0000);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(255,68,68,0.4);
+      position: relative;
+    }
+    
+    .postman-logo::before {
+      content: '📮';
+      font-size: 36px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+    
+    .postman-logo::after {
+      content: '';
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 20px;
+      height: 20px;
+      background: #00ff00;
+      border-radius: 50%;
+      border: 3px solid white;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+    
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    
+    .smart-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff4444, #cc0000);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 15px rgba(255,68,68,0.3);
+    }
+    
+    .subtitle {
+      color: #7f8c8d;
+      margin-bottom: 35px;
+      font-size: 15px;
+      font-weight: 400;
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+      text-align: left;
+      position: relative;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: #2c3e50;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #ecf0f1;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 400;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(255,255,255,0.9);
+      color: #2c3e50;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #ff4444;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(255,68,68,0.1);
+      transform: translateY(-2px);
+    }
+    
+    .form-input::placeholder {
+      color: #bdc3c7;
+      font-weight: 400;
+    }
+    
+    .login-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 20px;
+      box-shadow: 0 8px 25px rgba(255,68,68,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .login-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(255,68,68,0.4);
+    }
+    
+    .login-btn:hover::before {
+      left: 100%;
+    }
+    
+    .login-btn:active {
+      transform: translateY(-1px);
+    }
+    
+    .login-btn:disabled {
+      background: linear-gradient(135deg, #bdc3c7, #95a5a6);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 4px 15px rgba(149,165,166,0.2);
+    }
+    
+    .login-btn:disabled::before {
+      display: none;
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 15px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      background: rgba(231,76,60,0.1);
+      border: 1px solid rgba(231,76,60,0.2);
+      display: none;
+      text-align: left;
+    }
+    
+    .loading {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255,68,68,0.3);
+      border-top: 3px solid #ff4444;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    .loading-text {
+      margin-left: 10px;
+      color: #7f8c8d;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .features {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid #ecf0f1;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      color: #7f8c8d;
+      font-size: 13px;
+      font-weight: 400;
+    }
+    
+    .feature-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 10px;
+      color: #ff4444;
+    }
+    
+    .smart-indicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 12px;
+      height: 12px;
+      background: #00ff00;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(0,255,0,0.2);
+      animation: smartPulse 3s infinite;
+    }
+    
+    @keyframes smartPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 4px rgba(0,255,0,0.2); }
+      50% { transform: scale(1.2); box-shadow: 0 0 0 8px rgba(0,255,0,0.1); }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 35px 25px;
+        margin: 10px;
+      }
+      
+      .title {
+        font-size: 24px;
+      }
+      
+      .form-input {
+        padding: 14px 16px;
+      }
+      
+      .login-btn {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="smart-indicator"></div>
+    
+    <div class="postman-logo"></div>
+    
+    <h1 class="title">Smart Delivery Insight</h1>
+    <div class="smart-badge">🤖 AI POWERED SYSTEM</div>
+    <p class="subtitle">ระบบจัดการการส่งมอบอัจฉริยะ</p>
+    
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="username">👤 Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          class="form-input" 
+          placeholder="ป้อน username ของคุณ"
+          required
+          autocomplete="username"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="password">🔐 Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-input" 
+          placeholder="ป้อน password ของคุณ"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+      
+      <button type="submit" id="loginBtn" class="login-btn">
+        🚀 เข้าสู่ระบบอัจฉริยะ
+      </button>
+      
+      <div id="loading" class="loading">
+        <span class="loading-spinner"></span>
+        <span class="loading-text">กำลังตรวจสอบข้อมูล...</span>
+      </div>
+      
+      <div id="errorMessage" class="error-message"></div>
+    </form>
+    
+    <div class="features">
+      <div class="feature-item">
+        <span class="feature-icon">⚡</span>
+        ระบบประมวลผลเร็วด้วย AI Cache
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🔒</span>
+        ความปลอดภัยระดับธนาคาร
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">📊</span>
+        Dashboard แบบ Real-time
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ตัวแปรสำหรับจัดการ Login
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const loading = document.getElementById('loading');
+    const errorMessage = document.getElementById('errorMessage');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    
+    // เพิ่มเอฟเฟคเมื่อพิมพ์
+    [usernameInput, passwordInput].forEach(input => {
+      input.addEventListener('input', function() {
+        if (this.value.length > 0) {
+          this.style.borderColor = '#ff4444';
+        } else {
+          this.style.borderColor = '#ecf0f1';
+        }
+      });
+    });
+    
+    // จัดการการส่งฟอร์ม
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      handleLogin();
+    });
+    
+    // ให้กด Enter เพื่อล็อคอิน
+    [usernameInput, passwordInput].forEach(input => {
+      input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleLogin();
+        }
+      });
+    });
+    
+    /**
+     * ฟังก์ชันจัดการการล็อคอิน
+     */
+    function handleLogin() {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      
+      // ตรวจสอบข้อมูล
+      if (!username || !password) {
+        showError('⚠️ กรุณากรอก Username และ Password ให้ครบถ้วน');
+        shakeForm();
+        return;
+      }
+      
+      // แสดงสถานะ Loading
+      showLoading(true);
+      hideError();
+      
+      // Log เพื่อ Debug
+      console.log('🔍 กำลังล็อคอิน:', { username: username });
+      
+      // เรียกฟังก์ชันล็อคอินจาก Google Apps Script
+      google.script.run
+        .withSuccessHandler(onLoginSuccess)
+        .withFailureHandler(onLoginFailure)
+        .userLogin({
+          username: username,
+          password: password
+        });
+      
+      // ตั้ง Timeout สำหรับป้องกันค้าง
+      setTimeout(() => {
+        if (loginBtn.disabled) {
+          showLoading(false);
+          showError('⏰ การเชื่อมต่อใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง');
+        }
+      }, 20000); // 20 วินาที
+    }
+    
+    /**
+     * จัดการเมื่อล็อคอินสำเร็จ
+     */
+    function onLoginSuccess(result) {
+      console.log('✅ Login result:', result);
+      showLoading(false);
+      
+      if (result.status === 'success') {
+        // เก็บข้อมูล Session
+        localStorage.setItem('authToken', result.token);
+        localStorage.setItem('userRole', result.role);
+        localStorage.setItem('loginTime', new Date().toISOString());
+        
+        // แสดงข้อความสำเร็จ
+        loginBtn.innerHTML = '✅ เข้าสู่ระบบสำเร็จ!';
+        loginBtn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+        
+        // เพิ่มเอฟเฟคสำเร็จ
+        successAnimation();
+        
+        // เปลี่ยนไปหน้า Dashboard
+        setTimeout(() => {
+          loadDashboard();
+        }, 1500);
+        
+      } else {
+        showError('❌ ' + (result.message || 'เกิดข้อผิดพลาดในการล็อคอิน'));
+        shakeForm();
+      }
+    }
+    
+    /**
+     * จัดการเมื่อล็อคอินไม่สำเร็จ
+     */
+    function onLoginFailure(error) {
+      console.error('❌ Login error:', error);
+      showLoading(false);
+      showError('🔧 เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + error.message);
+      shakeForm();
+    }
+    
+    /**
+     * โหลดหน้า Dashboard
+     */
+    function loadDashboard() {
+      console.log('📊 กำลังโหลด Dashboard...');
+      
+      google.script.run
+        .withSuccessHandler((html) => {
+          console.log('✅ Dashboard โหลดสำเร็จ');
+          document.body.innerHTML = html;
+        })
+        .withFailureHandler((error) => {
+          console.error('❌ Dashboard load error:', error);
+          showError('📊 ไม่สามารถโหลดหน้า Dashboard ได้');
+          showLoading(false);
+        })
+        .getDashboardHtml();
+    }
+    
+    /**
+     * แสดง/ซ่อน Loading
+     */
+    function showLoading(show) {
+      if (show) {
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '🔄 กำลังตรวจสอบ...';
+        loading.style.display = 'block';
+      } else {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '🚀 เข้าสู่ระบบอัจฉริยะ';
+        loading.style.display = 'none';
+      }
+    }
+    
+    /**
+     * แสดงข้อความ Error
+     */
+    function showError(message) {
+      errorMessage.innerHTML = message;
+      errorMessage.style.display = 'block';
+      
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        hideError();
+      }, 5000);
+    }
+    
+    /**
+     * ซ่อนข้อความ Error
+     */
+    function hideError() {
+      errorMessage.style.display = 'none';
+    }
+    
+    /**
+     * เอฟเฟค Shake เมื่อ Error
+     */
+    function shakeForm() {
+      const container = document.querySelector('.login-container');
+      container.style.animation = 'shake 0.5s ease-in-out';
+      
+      setTimeout(() => {
+        container.style.animation = '';
+      }, 500);
+    }
+    
+    /**
+     * เอฟเฟคเมื่อล็อคอินสำเร็จ
+     */
+    function successAnimation() {
+      const container = document.querySelector('.login-container');
+      container.style.transform = 'scale(1.05)';
+      container.style.boxShadow = '0 25px 50px rgba(39,174,96,0.3)';
+      
+      setTimeout(() => {
+        container.style.transform = 'scale(1)';
+        container.style.boxShadow = '0 25px 50px rgba(0,0,0,0.25)';
+      }, 300);
+    }
+    
+    // เพิ่ม CSS Animation สำหรับ Shake
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // ตรวจสอบ Session เมื่อโหลดหน้า
+    window.addEventListener('load', function() {
+      console.log('🔍 ตรวจสอบ Session ที่มีอยู่...');
+      
+      const token = localStorage.getItem('authToken');
+      
+      if (token) {
+        console.log('🎫 พบ Token:', token.substring(0, 10) + '...');
+        
+        showLoading(true);
+        
+        google.script.run
+          .withSuccessHandler((result) => {
+            console.log('🔍 Session check result:', result);
+            
+            if (result.status === 'valid') {
+              console.log('✅ Session ยังใช้ได้');
+              loadDashboard();
+            } else {
+              console.log('❌ Session หมดอายุ:', result.reason);
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('userRole');
+              localStorage.removeItem('loginTime');
+              showLoading(false);
+            }
+          })
+          .withFailureHandler((error) => {
+            console.error('❌ Session check error:', error);
+            showLoading(false);
+          })
+          .checkSessionToken(token);
+      } else {
+        console.log('ℹ️ ไม่พบ Session');
+      }
+    });
+    
+    // เพิ่มการตรวจสอบ Network Status
+    window.addEventListener('online', function() {
+      console.log('🌐 เชื่อมต่ออินเทอร์เน็ตแล้ว');
+    });
+    
+    window.addEventListener('offline', function() {
+      console.log('📵 ขาดการเชื่อมต่ออินเทอร์เน็ต');
+      showError('📵 ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบและลองใหม่');
+    });
+  </script>
+</body>
+</html>
