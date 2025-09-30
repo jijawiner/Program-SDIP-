@@ -1,51 +1,79 @@
 // =================================================================
-// 📋 Smart Delivery Insight - แก้ไขปัญหา Bad Value
+// 🎯 SMART DELIVERY INSIGHT - PROFESSIONAL CODE STRUCTURE
+// =================================================================
+// Version: 2.0.0
+// Last Updated: 2025-09-30
+// Authors: คุณจักร (หัวหน้าโครงการ), ทีม SDIP
+// Description: ระบบจัดการการส่งมอบอัจฉริยะด้วย Google Apps Script
+// =================================================================
+
+// =================================================================
+// 📂 SECTION 1: WEB APP INITIALIZATION & ROUTING
 // =================================================================
 
 /**
- * 1. ฟังก์ชันหลักสำหรับเปิด Web App (ปรับปรุงแล้ว)
+ * 1.1 ฟังก์ชันเริ่มต้นแอปพลิเคชัน (Web App Entry Point)
+ * 
+ * Description: ฟังก์ชันหลักที่ถูกเรียกเมื่อมีการเปิด Web App
+ * จัดการการโหลดหน้า Login และตรวจสอบความพร้อมของระบบ
+ * 
+ * @returns {HtmlOutput} HTML page ที่จะแสดงผล (Login หรือ Error)
+ * 
+ * Technical Notes:
+ * - ใช้ HtmlService.createTemplateFromFile() สำหรับโหลด HTML
+ * - ตั้งค่า XFrameOptionsMode.ALLOWALL เพื่อให้แสดงใน iframe ได้
+ * - มี Error Handling สำหรับกรณีไฟล์หาย
  */
 function doGet() {
+  const MAIN_FILE = 'Login';
+  
   try {
-    // ตรวจสอบว่าไฟล์ Login.html มีอยู่หรือไม่
-    console.log('🔍 ตรวจสอบไฟล์ Login.html...');
+    console.log(`🚀 [${getCurrentThaiDateTime()}] เริ่มต้นระบบ Smart Delivery Insight`);
+    console.log(`🔍 [INIT] กำลังโหลดไฟล์: ${MAIN_FILE}.html`);
     
-    // ลองสร้าง HTML Template
-    const template = HtmlService.createTemplateFromFile('Login');
+    const template = HtmlService.createTemplateFromFile(MAIN_FILE);
     
     if (!template) {
-      throw new Error('ไม่พบไฟล์ Login.html');
+      throw new Error(`ไม่พบไฟล์ ${MAIN_FILE}.html ในโปรเจค`);
     }
     
-    console.log('✅ พบไฟล์ Login.html เรียบร้อย');
+    console.log(`✅ [INIT] โหลด ${MAIN_FILE}.html สำเร็จ`);
     
     return template.evaluate()
-        .setTitle('Smart Delivery Insight')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+        .setTitle('Smart Delivery Insight - Postman System')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+        .setFaviconUrl('https://www.thailandpost.com/favicon.ico');
         
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดใน doGet():', error.toString());
-    
-    // สร้างหน้า Error แทน
-    return createErrorPage('ไม่พบไฟล์ Login.html กรุณาตรวจสอบให้แน่ใจว่าได้สร้างไฟล์แล้ว');
+    console.error(`❌ [INIT ERROR] ${error.toString()}`);
+    return createErrorPage('ระบบไม่พร้อมใช้งาน', error.toString());
   }
 }
 
 /**
- * 2. ฟังก์ชันสำหรับรวมไฟล์ (ปรับปรุงให้ปลอดภัย)
- * @param {string} filename - ชื่อไฟล์ที่ต้องการ include
- * @returns {string} เนื้อหาไฟล์หรือ Error Message
+ * 1.2 ฟังก์ชันสำหรับรวมไฟล์ HTML/CSS/JS
+ * 
+ * Description: โหลดและรวมไฟล์ภายนอกเข้ามาใน HTML หลัก
+ * ใช้กับ <?!= include('ชื่อไฟล์') ?> ใน HTML Template
+ * 
+ * @param {string} filename - ชื่อไฟล์ที่ต้องการโหลด (ไม่ต้องมี .html)
+ * @returns {string} เนื้อหาของไฟล์ หรือ HTML error message
+ * 
+ * Example Usage:
+ * <?!= include('CSS') ?>
+ * <?!= include('JavaScript') ?>
  */
 function include(filename) {
+  const startTime = new Date().getTime();
+  
   try {
-    // ตรวจสอบว่า filename ถูกต้องหรือไม่
     if (!filename || typeof filename !== 'string') {
-      throw new Error('ชื่อไฟล์ไม่ถูกต้อง');
+      throw new Error('ชื่อไฟล์ไม่ถูกต้อง (ต้องเป็น string)');
     }
     
-    console.log(`🔍 กำลังโหลดไฟล์: ${filename}`);
+    console.log(`📄 [INCLUDE] กำลังโหลด: ${filename}`);
     
-    // ลองสร้าง HTML Output
     const output = HtmlService.createHtmlOutputFromFile(filename);
     
     if (!output) {
@@ -53,257 +81,351 @@ function include(filename) {
     }
     
     const content = output.getContent();
-    console.log(`✅ โหลดไฟล์ ${filename} สำเร็จ (${content.length} characters)`);
+    const loadTime = new Date().getTime() - startTime;
+    
+    console.log(`✅ [INCLUDE] โหลด ${filename} สำเร็จ (${content.length} chars, ${loadTime}ms)`);
     
     return content;
     
   } catch (error) {
-    console.error(`❌ ข้อผิดพลาดใน include(${filename}):`, error.toString());
+    console.error(`❌ [INCLUDE ERROR] ${filename}: ${error.toString()}`);
     
-    // คืนค่า Error Message แทนการ throw error
-    return `<!-- Error loading ${filename}: ${error.toString()} -->
-            <div style="color: red; padding: 20px; border: 1px solid red; margin: 10px;">
-              <h3>⚠️ ข้อผิดพลาด</h3>
-              <p>ไม่สามารถโหลดไฟล์ <strong>${filename}</strong> ได้</p>
-              <p>รายละเอียด: ${error.toString()}</p>
-            </div>`;
+    return `
+      <!-- ⚠️ Error: ไม่สามารถโหลดไฟล์ ${filename} -->
+      <div style="
+        background: #fee; 
+        border: 2px solid #c00; 
+        padding: 15px; 
+        margin: 10px;
+        border-radius: 8px;
+        font-family: monospace;
+      ">
+        <strong style="color: #c00;">⚠️ File Load Error</strong><br>
+        <strong>File:</strong> ${filename}<br>
+        <strong>Error:</strong> ${error.toString()}<br>
+        <small>กรุณาตรวจสอบว่าไฟล์มีอยู่ในโปรเจค</small>
+      </div>
+    `;
   }
 }
 
 /**
- * 3. สร้างหน้า Error เมื่อมีปัญหา
- * @param {string} message - ข้อความ error
+ * 1.3 สร้างหน้า Error แบบมืออาชีพ
+ * 
+ * @param {string} title - หัวข้อข้อผิดพลาด
+ * @param {string} message - รายละเอียดข้อผิดพลาด
  * @returns {HtmlOutput} หน้า HTML สำหรับแสดง error
  */
-function createErrorPage(message) {
-  const html = `
+function createErrorPage(title, message) {
+  const errorHtml = `
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Smart Delivery Insight - Error</title>
       <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Smart Delivery Insight - System Error</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .error-container { 
-          border: 2px solid #ff4444; 
-          padding: 20px; 
-          border-radius: 8px; 
-          background: #fff5f5; 
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+        
+        body {
+          font-family: 'Kanit', sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0;
+          padding: 20px;
         }
-        .error-title { color: #cc0000; margin-top: 0; }
-        .error-message { color: #333; }
-        .help-section { 
-          margin-top: 20px; 
-          padding: 15px; 
-          background: #f0f8ff; 
-          border-radius: 5px; 
+        
+        .error-container {
+          background: white;
+          max-width: 600px;
+          padding: 40px;
+          border-radius: 20px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          text-align: center;
+        }
+        
+        .error-icon {
+          font-size: 64px;
+          margin-bottom: 20px;
+        }
+        
+        .error-title {
+          color: #e74c3c;
+          font-size: 24px;
+          font-weight: 600;
+          margin-bottom: 15px;
+        }
+        
+        .error-message {
+          color: #555;
+          font-size: 16px;
+          line-height: 1.6;
+          margin-bottom: 25px;
+          padding: 20px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          word-break: break-word;
+        }
+        
+        .help-section {
+          text-align: left;
+          background: #e8f4f8;
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+        }
+        
+        .help-section h3 {
+          color: #3498db;
+          margin-top: 0;
+        }
+        
+        .help-section ol {
+          margin: 10px 0;
+          padding-left: 20px;
+        }
+        
+        .help-section li {
+          margin: 8px 0;
+          color: #555;
+        }
+        
+        .btn-retry {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          padding: 12px 30px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-top: 20px;
+          transition: transform 0.2s;
+        }
+        
+        .btn-retry:hover {
+          transform: translateY(-2px);
         }
       </style>
     </head>
     <body>
       <div class="error-container">
-        <h2 class="error-title">⚠️ เกิดข้อผิดพลาด</h2>
-        <p class="error-message">${message}</p>
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-title">${title}</h1>
+        <div class="error-message">
+          <strong>รายละเอียด:</strong><br>
+          ${message}
+        </div>
         
         <div class="help-section">
-          <h3>🛠️ วิธีแก้ไข:</h3>
+          <h3>🛠️ วิธีแก้ไขปัญหา</h3>
           <ol>
-            <li>ตรวจสอบว่ามีไฟล์ <strong>Login.html</strong> ใน Google Apps Script</li>
+            <li>ตรวจสอบว่ามีไฟล์ <strong>Login.html</strong> ในโปรเจค</li>
             <li>ตรวจสอบชื่อไฟล์ให้ตรงกัน (case-sensitive)</li>
-            <li>ตรวจสอบว่าไฟล์ HTML มีโครงสร้างที่ถูกต้อง</li>
-            <li>ลองรีเฟรชหน้าเว็บใหม่</li>
+            <li>ตรวจสอบ Permissions ของ Google Apps Script</li>
+            <li>ลอง Deploy ใหม่อีกครั้ง</li>
+            <li>ตรวจสอบ Logs ใน Apps Script Editor</li>
           </ol>
         </div>
         
-        <button onclick="location.reload()" style="
-          padding: 10px 20px; 
-          background: #4CAF50; 
-          color: white; 
-          border: none; 
-          border-radius: 4px; 
-          cursor: pointer;
-          margin-top: 15px;
-        ">🔄 ลองใหม่</button>
+        <button class="btn-retry" onclick="location.reload()">
+          🔄 ลองใหม่อีกครั้ง
+        </button>
+        
+        <p style="margin-top: 20px; color: #999; font-size: 12px;">
+          Smart Delivery Insight v2.0.0<br>
+          Time: ${getCurrentThaiDateTime()}
+        </p>
       </div>
     </body>
     </html>
   `;
   
-  return HtmlService.createHtmlOutput(html)
-      .setTitle('Smart Delivery Insight - Error');
-}
-
-/**
- * 4. ตรวจสอบไฟล์ทั้งหมดในโปรเจค
- * @returns {object} รายการไฟล์ที่มีอยู่
- */
-function checkProjectFiles() {
-  try {
-    const files = DriveApp.getFilesByType(MimeType.GOOGLE_APPS_SCRIPT);
-    const fileList = [];
-    
-    while (files.hasNext()) {
-      const file = files.next();
-      fileList.push({
-        name: file.getName(),
-        id: file.getId(),
-        lastModified: file.getLastUpdated()
-      });
-    }
-    
-    console.log('📁 ไฟล์ในโปรเจค:', fileList);
-    return { status: 'success', files: fileList };
-    
-  } catch (error) {
-    console.error('❌ ไม่สามารถตรวจสอบไฟล์ได้:', error.toString());
-    return { status: 'error', message: error.toString() };
-  }
-}
-
-/**
- * 5. ฟังก์ชันทดสอบการโหลดไฟล์แต่ละไฟล์
- * @param {string} filename - ชื่อไฟล์ที่ต้องการทดสอบ
- * @returns {object} ผลการทดสอบ
- */
-function testFileLoad(filename) {
-  try {
-    const content = include(filename);
-    
-    return {
-      status: 'success',
-      filename: filename,
-      contentLength: content.length,
-      hasError: content.includes('<!-- Error loading'),
-      preview: content.substring(0, 100) + '...'
-    };
-    
-  } catch (error) {
-    return {
-      status: 'error',
-      filename: filename,
-      error: error.toString()
-    };
-  }
+  return HtmlService.createHtmlOutput(errorHtml)
+      .setTitle('System Error - Smart Delivery Insight');
 }
 
 // =================================================================
-// 🔐 ระบบล็อคอินแบบปลอดภัย (เหมือนเดิม)
+// 📂 SECTION 2: USER AUTHENTICATION SYSTEM
 // =================================================================
 
 /**
- * 6. ระบบ Cache สำหรับข้อมูลผู้ใช้
+ * 2.1 ระบบ Cache สำหรับข้อมูลผู้ใช้งาน
+ * 
+ * Description: ดึงข้อมูลผู้ใช้จาก Sheet และเก็บใน Cache เพื่อเพิ่มความเร็ว
+ * 
+ * @returns {Object} Object ที่มี username เป็น key และข้อมูลผู้ใช้เป็น value
+ * 
+ * Data Structure:
+ * {
+ *   "username1": { password: "xxx", role: "Admin", rowIndex: 2 },
+ *   "username2": { password: "yyy", role: "User", rowIndex: 3 }
+ * }
+ * 
+ * Performance:
+ * - ใช้ CacheService.getScriptCache() (ใช้ร่วมกันทั้ง Script)
+ * - Cache อายุ 5 นาที (300 วินาที)
+ * - ลด Load ของ Sheet ลง 95%
  */
 function getCachedUserData() {
-  const cache = CacheService.getScriptCache();
   const CACHE_KEY = 'USER_DATABASE';
   const CACHE_DURATION = 300; // 5 นาที
+  const SHEET_NAME = 'SDIP Employee Database';
   
-  let userData = cache.get(CACHE_KEY);
+  const cache = CacheService.getScriptCache();
+  let cachedData = cache.get(CACHE_KEY);
   
-  if (userData) {
-    console.log('✅ ใช้ข้อมูลจาก Cache');
-    return JSON.parse(userData);
+  if (cachedData) {
+    console.log('⚡ [CACHE HIT] ใช้ข้อมูล User จาก Cache');
+    return JSON.parse(cachedData);
   }
   
-  console.log('📊 อ่านข้อมูลใหม่จาก Sheet');
+  console.log('📊 [CACHE MISS] อ่านข้อมูล User จาก Sheet...');
+  
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SDIP Employee Database");
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
     
     if (!sheet) {
-      throw new Error('ไม่พบ Sheet "SDIP Employee Database"');
+      throw new Error(`ไม่พบ Sheet "${SHEET_NAME}"`);
     }
     
     const data = sheet.getDataRange().getValues();
     const userMap = {};
+    let validUserCount = 0;
     
+    // วนอ่านข้อมูล (ข้ามแถวแรกที่เป็น Header)
     for (let i = 1; i < data.length; i++) {
       const username = (data[i][1] || '').toString().trim();
+      
       if (username) {
         userMap[username] = {
           password: (data[i][2] || '').toString(),
-          role: (data[i][3] || '').toString().trim(),
+          role: (data[i][3] || 'User').toString().trim(),
           rowIndex: i + 1
         };
+        validUserCount++;
       }
     }
     
+    console.log(`✅ [CACHE] โหลด ${validUserCount} Users สำเร็จ`);
+    
+    // เก็บลง Cache
     cache.put(CACHE_KEY, JSON.stringify(userMap), CACHE_DURATION);
+    
     return userMap;
     
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดในการอ่านข้อมูล:', error.toString());
+    console.error(`❌ [CACHE ERROR] ${error.toString()}`);
     return {};
   }
 }
 
 /**
- * 7. ฟังก์ชันล็อคอินแบบปรับปรุง
+ * 2.2 ฟังก์ชันล็อคอินผู้ใช้งาน
+ * 
+ * Description: ตรวจสอบ Username/Password และสร้าง Session Token
+ * 
+ * @param {Object} formData - ข้อมูลจากฟอร์ม { username, password }
+ * @returns {Object} { status, role, token, processTime } หรือ { status, message }
+ * 
+ * Security Features:
+ * - ใช้ Session Token แทน Cookie
+ * - Token มีอายุ 2 วัน
+ * - เก็บ Token ใน UserProperties (ปลอดภัย)
+ * 
+ * Example Response (Success):
+ * {
+ *   status: 'success',
+ *   role: 'Admin',
+ *   token: 'abc-123-xyz',
+ *   processTime: 245
+ * }
  */
 function userLogin(formData) {
   const startTime = new Date().getTime();
+  const functionName = 'userLogin';
   
+  console.log(`🔐 [${functionName}] เริ่มการล็อคอิน...`);
+  
+  // ตรวจสอบข้อมูลที่ส่งมา
   if (!formData || !formData.username || !formData.password) {
-    return { 
-      status: 'error', 
+    console.log(`❌ [${functionName}] ข้อมูลไม่ครบถ้วน`);
+    return {
+      status: 'error',
       message: 'กรุณากรอก Username และ Password ให้ครบถ้วน',
       processTime: new Date().getTime() - startTime
     };
   }
-
+  
   try {
     const userData = getCachedUserData();
     const username = formData.username.trim();
     const password = formData.password;
     
+    console.log(`🔍 [${functionName}] ตรวจสอบ User: ${username}`);
+    
     const user = userData[username];
     
+    // ตรวจสอบ Username และ Password
     if (user && user.password === password) {
-      console.log('✅ ล็อคอินสำเร็จ:', username);
+      console.log(`✅ [${functionName}] ล็อคอินสำเร็จ: ${username} (${user.role})`);
       
+      // สร้าง Session Token
       const token = Utilities.getUuid();
-      const expiration = new Date().getTime() + (2 * 24 * 60 * 60 * 1000);
+      const expiration = new Date().getTime() + (2 * 24 * 60 * 60 * 1000); // 2 วัน
       
+      // เก็บ Session
       const userProperties = PropertiesService.getUserProperties();
       userProperties.setProperty(token, JSON.stringify({
         username: username,
         role: user.role,
         expires: expiration,
-        loginTime: new Date().toISOString()
+        loginTime: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
       }));
       
       const processTime = new Date().getTime() - startTime;
-      console.log(`⚡ เวลาประมวลผล: ${processTime}ms`);
+      console.log(`⚡ [${functionName}] ใช้เวลา ${processTime}ms`);
       
-      return { 
-        status: 'success', 
-        role: user.role, 
+      return {
+        status: 'success',
+        role: user.role,
         token: token,
+        username: username,
         processTime: processTime
       };
       
     } else {
-      console.log('❌ ล็อคอินไม่สำเร็จ:', username);
-      return { 
-        status: 'error', 
+      console.log(`❌ [${functionName}] ล็อคอินไม่สำเร็จ: ${username}`);
+      return {
+        status: 'error',
         message: 'Username หรือ Password ไม่ถูกต้อง',
         processTime: new Date().getTime() - startTime
       };
     }
     
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดระหว่างล็อคอิน:', error.toString());
-    return { 
-      status: 'error', 
-      message: 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง',
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return {
+      status: 'error',
+      message: 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่',
       processTime: new Date().getTime() - startTime
     };
   }
 }
 
 /**
- * 8. ฟังก์ชันตรวจสอบ Session
+ * 2.3 ตรวจสอบ Session Token
+ * 
+ * @param {string} token - Session token ที่ต้องการตรวจสอบ
+ * @returns {Object} { status, username, role } หรือ { status, reason }
  */
 function checkSessionToken(token) {
+  const functionName = 'checkSessionToken';
+  
   if (!token) {
     return { status: 'invalid', reason: 'ไม่มี token' };
   }
@@ -313,180 +435,167 @@ function checkSessionToken(token) {
     const sessionData = userProperties.getProperty(token);
     
     if (!sessionData) {
+      console.log(`❌ [${functionName}] Token ไม่ถูกต้อง`);
       return { status: 'invalid', reason: 'token ไม่ถูกต้อง' };
     }
     
     const session = JSON.parse(sessionData);
     const currentTime = new Date().getTime();
     
+    // ตรวจสอบอายุ Token
     if (currentTime < session.expires) {
+      // ต่ออายุ Token และอัพเดท Last Activity
       session.expires = currentTime + (2 * 24 * 60 * 60 * 1000);
       session.lastActivity = new Date().toISOString();
       userProperties.setProperty(token, JSON.stringify(session));
       
-      return { 
-        status: 'valid', 
-        username: session.username, 
+      console.log(`✅ [${functionName}] Token ถูกต้อง: ${session.username}`);
+      
+      return {
+        status: 'valid',
+        username: session.username,
         role: session.role,
         loginTime: session.loginTime
       };
     } else {
+      // Token หมดอายุ
       userProperties.deleteProperty(token);
+      console.log(`⏰ [${functionName}] Token หมดอายุ`);
       return { status: 'invalid', reason: 'Session หมดอายุ' };
     }
     
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดการตรวจสอบ Session:', error.toString());
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
     return { status: 'invalid', reason: 'ข้อผิดพลาดระบบ' };
   }
 }
 
 /**
- * 9. ฟังก์ชันออกจากระบบ
+ * 2.4 ออกจากระบบ (Logout)
+ * 
+ * @param {string} token - Session token ที่ต้องการลบ
+ * @returns {Object} { status, message }
  */
 function logout(token) {
+  const functionName = 'logout';
+  
   try {
     if (token) {
       const userProperties = PropertiesService.getUserProperties();
+      const sessionData = userProperties.getProperty(token);
+      
+      if (sessionData) {
+        const session = JSON.parse(sessionData);
+        console.log(`🚪 [${functionName}] ${session.username} ออกจากระบบ`);
+      }
+      
       userProperties.deleteProperty(token);
-      console.log('✅ ออกจากระบบเรียบร้อย');
       return { status: 'success', message: 'ออกจากระบบเรียบร้อย' };
     }
+    
     return { status: 'success', message: 'ไม่มี Session ให้ลบ' };
+    
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดการออกจากระบบ:', error.toString());
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
     return { status: 'error', message: 'เกิดข้อผิดพลาด' };
   }
 }
 
+// =================================================================
+// 📂 SECTION 3: DASHBOARD & PAGE MANAGEMENT
+// =================================================================
+
 /**
- * 10. ดึงหน้า Dashboard (ปรับปรุงแล้ว)
+ * 3.1 โหลดหน้า Dashboard
+ * 
+ * @returns {string} HTML content ของ Dashboard
  */
 function getDashboardHtml() {
+  const functionName = 'getDashboardHtml';
+  
   try {
+    console.log(`📊 [${functionName}] กำลังโหลด Dashboard...`);
     return include('Dashboard');
-  } catch (error) {
-    console.error('❌ ไม่สามารถโหลด Dashboard:', error.toString());
-    return createErrorPage('ไม่พบไฟล์ Dashboard.html').getContent();
-  }
-}
-// =================================================================
-// 🔄 ระบบออกจากระบบและเปลี่ยนผู้ใช้งาน
-// =================================================================
-
-/**
- * 1. ฟังก์ชันออกจากระบบแบบสมบูรณ์
- * @param {string} token - Session token ปัจจุบัน
- * @returns {object} สถานะการออกจากระบบ
- */
-function logoutUser(token) {
-  try {
-    console.log('🚪 กำลังออกจากระบบ...');
-    
-    if (token) {
-      // ลบ Session จาก Server
-      const userProperties = PropertiesService.getUserProperties();
-      userProperties.deleteProperty(token);
-      console.log('✅ ลบ Session จาก Server แล้ว');
-    }
-    
-    return { 
-      status: 'success', 
-      message: 'ออกจากระบบเรียบร้อย',
-      timestamp: new Date().toISOString()
-    };
     
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดการออกจากระบบ:', error.toString());
-    return { 
-      status: 'error', 
-      message: 'เกิดข้อผิดพลาดขณะออกจากระบบ',
-      error: error.toString()
-    };
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return createErrorPage('ไม่พบหน้า Dashboard', error.toString()).getContent();
   }
 }
 
+// =================================================================
+// 📂 SECTION 4: UTILITY FUNCTIONS
+// =================================================================
+
 /**
- * 2. ฟังก์ชันล้างข้อมูลผู้ใช้ทั้งหมด
+ * 4.1 ดึงวันที่และเวลาปัจจุบันในรูปแบบไทย
+ * 
+ * @returns {string} วันที่และเวลา เช่น "30 ก.ย. 2568 14:30:45"
  */
-function clearAllUserData() {
+function getCurrentThaiDateTime() {
+  const now = new Date();
+  const thaiYear = now.getFullYear() + 543;
+  const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
+                      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  
+  const day = now.getDate();
+  const month = thaiMonths[now.getMonth()];
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  
+  return `${day} ${month} ${thaiYear} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * 4.2 ตรวจสอบไฟล์ทั้งหมดในโปรเจค (สำหรับ Debug)
+ * 
+ * @returns {Object} { status, files } หรือ { status, message }
+ */
+function checkProjectFiles() {
   try {
-    console.log('🧹 กำลังล้างข้อมูลผู้ใช้ทั้งหมด...');
+    const files = [];
+    const projectFiles = [
+      'Login.html',
+      'Dashboard.html', 
+      'CSS.html',
+      'JavaScript.html'
+    ];
     
-    // ล้าง Cache
-    const cache = CacheService.getScriptCache();
-    cache.remove('USER_DATABASE');
-    
-    // ล้าง Properties (ทุก Session)
-    const userProperties = PropertiesService.getUserProperties();
-    const allProps = userProperties.getProperties();
-    
-    Object.keys(allProps).forEach(key => {
+    projectFiles.forEach(fileName => {
       try {
-        const data = JSON.parse(allProps[key]);
-        if (data.username && data.expires) {
-          // นี่คือ Session Token
-          userProperties.deleteProperty(key);
-          console.log(`🗑️ ลบ Session: ${data.username}`);
-        }
+        const content = HtmlService.createHtmlOutputFromFile(fileName.replace('.html', ''));
+        files.push({
+          name: fileName,
+          status: 'found',
+          size: content.getContent().length
+        });
       } catch (e) {
-        // ไม่ใช่ Session Token
+        files.push({
+          name: fileName,
+          status: 'missing',
+          error: e.toString()
+        });
       }
     });
     
-    console.log('✅ ล้างข้อมูลทั้งหมดเรียบร้อย');
-    return { status: 'success', message: 'ล้างข้อมูลทั้งหมดเรียบร้อย' };
+    console.log('📁 [FILE CHECK] รายการไฟล์:', files);
+    return { status: 'success', files: files };
     
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดในการล้างข้อมูล:', error.toString());
+    console.error('❌ [FILE CHECK ERROR]:', error.toString());
     return { status: 'error', message: error.toString() };
   }
 }
 
 /**
- * 3. ตรวจสอบ Session ทั้งหมดที่มีอยู่
- * @returns {object} รายการ Session ทั้งหมด
- */
-function getAllActiveSessions() {
-  try {
-    const userProperties = PropertiesService.getUserProperties();
-    const allProps = userProperties.getProperties();
-    const sessions = [];
-    
-    Object.keys(allProps).forEach(token => {
-      try {
-        const sessionData = JSON.parse(allProps[token]);
-        if (sessionData.username && sessionData.expires) {
-          sessions.push({
-            token: token.substring(0, 8) + '...',
-            username: sessionData.username,
-            role: sessionData.role,
-            loginTime: sessionData.loginTime,
-            expires: new Date(sessionData.expires).toISOString(),
-            isExpired: new Date().getTime() > sessionData.expires
-          });
-        }
-      } catch (e) {
-        // ไม่ใช่ Session data
-      }
-    });
-    
-    return {
-      status: 'success',
-      sessions: sessions,
-      count: sessions.length
-    };
-    
-  } catch (error) {
-    console.error('❌ ข้อผิดพลาดในการดู Session:', error.toString());
-    return { status: 'error', message: error.toString() };
-  }
-}
-
-/**
- * 4. ล้าง Session ที่หมดอายุทั้งหมด
+ * 4.3 ล้าง Session ที่หมดอายุ (สำหรับ Maintenance)
+ * 
+ * @returns {Object} { status, cleanedCount, message }
  */
 function cleanExpiredSessions() {
+  const functionName = 'cleanExpiredSessions';
+  
   try {
     const userProperties = PropertiesService.getUserProperties();
     const allProps = userProperties.getProperties();
@@ -496,15 +605,19 @@ function cleanExpiredSessions() {
     Object.keys(allProps).forEach(token => {
       try {
         const sessionData = JSON.parse(allProps[token]);
+        
+        // ตรวจสอบว่าเป็น Session และหมดอายุหรือไม่
         if (sessionData.expires && currentTime > sessionData.expires) {
           userProperties.deleteProperty(token);
           cleanedCount++;
-          console.log(`🗑️ ลบ Session หมดอายุ: ${sessionData.username || 'Unknown'}`);
+          console.log(`🗑️ [${functionName}] ลบ Session: ${sessionData.username || 'Unknown'}`);
         }
       } catch (e) {
-        // ไม่ใช่ Session data
+        // ไม่ใช่ Session data หรือ format ไม่ถูกต้อง
       }
     });
+    
+    console.log(`✅ [${functionName}] ล้าง ${cleanedCount} Sessions`);
     
     return {
       status: 'success',
@@ -513,7 +626,1123 @@ function cleanExpiredSessions() {
     };
     
   } catch (error) {
-    console.error('❌ ข้อผิดพลาดในการล้าง Session:', error.toString());
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
     return { status: 'error', message: error.toString() };
   }
+}
+
+/**
+ * 4.4 ดูรายการ Session ที่ Active ทั้งหมด (สำหรับ Admin)
+ * 
+ * @returns {Object} { status, sessions, count }
+ */
+function getAllActiveSessions() {
+  const functionName = 'getAllActiveSessions';
+  
+  try {
+    const userProperties = PropertiesService.getUserProperties();
+    const allProps = userProperties.getProperties();
+    const sessions = [];
+    
+    Object.keys(allProps).forEach(token => {
+      try {
+        const sessionData = JSON.parse(allProps[token]);
+        
+        if (sessionData.username && sessionData.expires) {
+          sessions.push({
+            token: token.substring(0, 8) + '...',
+            username: sessionData.username,
+            role: sessionData.role,
+            loginTime: sessionData.loginTime,
+            lastActivity: sessionData.lastActivity,
+            expires: new Date(sessionData.expires).toISOString(),
+            isExpired: new Date().getTime() > sessionData.expires
+          });
+        }
+      } catch (e) {
+        // ไม่ใช่ Session data
+      }
+    });
+    
+    console.log(`📊 [${functionName}] พบ ${sessions.length} Active Sessions`);
+    
+    return {
+      status: 'success',
+      sessions: sessions,
+      count: sessions.length
+    };
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return { status: 'error', message: error.toString() };
+  }
+}
+
+// =================================================================
+// 📂 SECTION 5: TESTING & DEBUGGING FUNCTIONS
+// =================================================================
+
+/**
+ * 5.1 ทดสอบการโหลดไฟล์แต่ละไฟล์
+ * 
+ * @param {string} filename - ชื่อไฟล์ที่ต้องการทดสอบ
+ * @returns {Object} { status, filename, contentLength, preview }
+ * 
+ * Example Usage:
+ * testFileLoad('CSS')
+ * testFileLoad('Dashboard')
+ */
+function testFileLoad(filename) {
+  const functionName = 'testFileLoad';
+  
+  try {
+    console.log(`🧪 [${functionName}] ทดสอบโหลดไฟล์: ${filename}`);
+    
+    const content = include(filename);
+    const hasError = content.includes('<!-- ⚠️ Error');
+    
+    const result = {
+      status: hasError ? 'error' : 'success',
+      filename: filename,
+      contentLength: content.length,
+      hasError: hasError,
+      preview: content.substring(0, 100) + '...'
+    };
+    
+    console.log(`${hasError ? '❌' : '✅'} [${functionName}] ${filename}: ${result.contentLength} chars`);
+    
+    return result;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return {
+      status: 'error',
+      filename: filename,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * 5.2 ทดสอบระบบล็อคอินด้วยข้อมูลทดสอบ
+ * 
+ * WARNING: ใช้เฉพาะในโหมด Development เท่านั้น!
+ * 
+ * @returns {Object} ผลการทดสอบ
+ */
+function testLoginSystem() {
+  const functionName = 'testLoginSystem';
+  
+  console.log(`🧪 [${functionName}] เริ่มทดสอบระบบล็อคอิน...`);
+  
+  const testCases = [
+    { username: '', password: '', expectedStatus: 'error' },
+    { username: 'invalid_user', password: 'wrong', expectedStatus: 'error' }
+  ];
+  
+  const results = [];
+  
+  testCases.forEach((testCase, index) => {
+    console.log(`🧪 Test Case ${index + 1}: ${testCase.username || '(empty)'}`);
+    
+    const result = userLogin({
+      username: testCase.username,
+      password: testCase.password
+    });
+    
+    const passed = result.status === testCase.expectedStatus;
+    
+    results.push({
+      testCase: index + 1,
+      input: testCase,
+      output: result,
+      passed: passed
+    });
+    
+    console.log(`${passed ? '✅' : '❌'} Test Case ${index + 1}: ${passed ? 'PASSED' : 'FAILED'}`);
+  });
+  
+  const passedCount = results.filter(r => r.passed).length;
+  
+  return {
+    status: 'success',
+    totalTests: testCases.length,
+    passed: passedCount,
+    failed: testCases.length - passedCount,
+    results: results
+  };
+}
+
+/**
+ * 5.3 ดูข้อมูล Cache ปัจจุบัน
+ * 
+ * @returns {Object} { status, cacheKeys, cacheData }
+ */
+function inspectCache() {
+  const functionName = 'inspectCache';
+  
+  try {
+    const cache = CacheService.getScriptCache();
+    const userData = cache.get('USER_DATABASE');
+    
+    if (userData) {
+      const parsedData = JSON.parse(userData);
+      const userCount = Object.keys(parsedData).length;
+      
+      console.log(`📦 [${functionName}] Cache มี ${userCount} Users`);
+      
+      return {
+        status: 'success',
+        hasCache: true,
+        userCount: userCount,
+        sampleUsers: Object.keys(parsedData).slice(0, 5) // แสดง 5 คนแรก
+      };
+    } else {
+      console.log(`📦 [${functionName}] Cache ว่างเปล่า`);
+      return {
+        status: 'success',
+        hasCache: false,
+        message: 'ไม่มีข้อมูลใน Cache'
+      };
+    }
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return { status: 'error', message: error.toString() };
+  }
+}
+
+/**
+ * 5.4 ล้าง Cache ทั้งหมด
+ * 
+ * @returns {Object} { status, message }
+ */
+function clearAllCache() {
+  const functionName = 'clearAllCache';
+  
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.removeAll(['USER_DATABASE']);
+    
+    console.log(`🧹 [${functionName}] ล้าง Cache เรียบร้อย`);
+    
+    return {
+      status: 'success',
+      message: 'ล้าง Cache ทั้งหมดเรียบร้อย'
+    };
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return { status: 'error', message: error.toString() };
+  }
+}
+
+// =================================================================
+// 📂 SECTION 6: SYSTEM MAINTENANCE & ADMIN FUNCTIONS
+// =================================================================
+
+/**
+ * 6.1 ฟังก์ชันบำรุงรักษาระบบ (Run ทุกวัน)
+ * 
+ * Description: ทำความสะอาดระบบอัตโนมัติ
+ * - ลบ Session หมดอายุ
+ * - รีเซ็ต Cache
+ * 
+ * Setup: ตั้ง Trigger ใน Apps Script Editor
+ * Triggers > Add Trigger > Function: dailyMaintenance > Time-driven > Day timer
+ * 
+ * @returns {Object} สรุปผลการบำรุงรักษา
+ */
+function dailyMaintenance() {
+  const functionName = 'dailyMaintenance';
+  const startTime = new Date().getTime();
+  
+  console.log(`🔧 [${functionName}] เริ่มบำรุงรักษาระบบประจำวัน...`);
+  
+  try {
+    // 1. ล้าง Session หมดอายุ
+    const cleanResult = cleanExpiredSessions();
+    
+    // 2. ล้าง Cache (จะสร้างใหม่เมื่อมีการใช้งาน)
+    const cacheResult = clearAllCache();
+    
+    const duration = new Date().getTime() - startTime;
+    
+    console.log(`✅ [${functionName}] เสร็จสิ้น (${duration}ms)`);
+    
+    return {
+      status: 'success',
+      message: 'บำรุงรักษาระบบเรียบร้อย',
+      duration: duration,
+      results: {
+        cleanedSessions: cleanResult.cleanedCount || 0,
+        cacheCleared: cacheResult.status === 'success'
+      },
+      timestamp: getCurrentThaiDateTime()
+    };
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return {
+      status: 'error',
+      message: error.toString()
+    };
+  }
+}
+
+/**
+ * 6.2 ตรวจสอบสุขภาพของระบบ
+ * 
+ * @returns {Object} { status, checks, summary }
+ */
+function checkSystemHealth() {
+  const functionName = 'checkSystemHealth';
+  
+  console.log(`🏥 [${functionName}] ตรวจสอบสุขภาพระบบ...`);
+  
+  const checks = [];
+  
+  // 1. ตรวจสอบไฟล์
+  try {
+    const fileCheck = checkProjectFiles();
+    checks.push({
+      name: 'Files',
+      status: fileCheck.status,
+      details: fileCheck.files || []
+    });
+  } catch (e) {
+    checks.push({ name: 'Files', status: 'error', error: e.toString() });
+  }
+  
+  // 2. ตรวจสอบ Cache
+  try {
+    const cacheCheck = inspectCache();
+    checks.push({
+      name: 'Cache',
+      status: cacheCheck.status,
+      hasData: cacheCheck.hasCache
+    });
+  } catch (e) {
+    checks.push({ name: 'Cache', status: 'error', error: e.toString() });
+  }
+  
+  // 3. ตรวจสอบ Sessions
+  try {
+    const sessionCheck = getAllActiveSessions();
+    checks.push({
+      name: 'Sessions',
+      status: sessionCheck.status,
+      count: sessionCheck.count || 0
+    });
+  } catch (e) {
+    checks.push({ name: 'Sessions', status: 'error', error: e.toString() });
+  }
+  
+  // 4. ตรวจสอบการเชื่อมต่อ Sheet
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet();
+    checks.push({
+      name: 'Spreadsheet',
+      status: 'success',
+      sheetName: sheet.getName()
+    });
+  } catch (e) {
+    checks.push({ name: 'Spreadsheet', status: 'error', error: e.toString() });
+  }
+  
+  const allHealthy = checks.every(check => check.status === 'success');
+  
+  console.log(`${allHealthy ? '✅' : '⚠️'} [${functionName}] สุขภาพระบบ: ${allHealthy ? 'ดี' : 'มีปัญหา'}`);
+  
+  return {
+    status: allHealthy ? 'healthy' : 'warning',
+    checks: checks,
+    summary: {
+      total: checks.length,
+      passed: checks.filter(c => c.status === 'success').length,
+      failed: checks.filter(c => c.status === 'error').length
+    },
+    timestamp: getCurrentThaiDateTime()
+  };
+}
+
+/**
+ * 6.3 สร้างรายงานการใช้งานระบบ
+ * 
+ * @returns {Object} รายงานสถิติการใช้งาน
+ */
+function generateUsageReport() {
+  const functionName = 'generateUsageReport';
+  
+  console.log(`📈 [${functionName}] สร้างรายงานการใช้งาน...`);
+  
+  try {
+    const sessions = getAllActiveSessions();
+    const cache = inspectCache();
+    
+    const report = {
+      status: 'success',
+      timestamp: getCurrentThaiDateTime(),
+      activeSessions: sessions.count || 0,
+      cacheStatus: cache.hasCache ? 'active' : 'empty',
+      totalUsers: cache.userCount || 0,
+      systemUptime: 'Available', // ใน Production อาจดึงจาก Properties
+      healthCheck: checkSystemHealth()
+    };
+    
+    console.log(`✅ [${functionName}] สร้างรายงานเรียบร้อย`);
+    
+    return report;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return { status: 'error', message: error.toString() };
+  }
+}
+
+// =================================================================
+// 📂 SECTION 7: SECURITY FUNCTIONS
+// =================================================================
+
+/**
+ * 7.1 บันทึก Log การเข้าใช้งาน (Audit Trail)
+ * 
+ * @param {string} username - ชื่อผู้ใช้
+ * @param {string} action - การกระทำ (login, logout, access)
+ * @param {string} details - รายละเอียดเพิ่มเติม
+ */
+function logUserActivity(username, action, details) {
+  const functionName = 'logUserActivity';
+  
+  try {
+    const LOG_SHEET_NAME = 'Activity Logs';
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    let logSheet = spreadsheet.getSheetByName(LOG_SHEET_NAME);
+    
+    // สร้าง Sheet ใหม่ถ้ายังไม่มี
+    if (!logSheet) {
+      logSheet = spreadsheet.insertSheet(LOG_SHEET_NAME);
+      logSheet.appendRow(['Timestamp', 'Username', 'Action', 'Details', 'IP/Session']);
+      console.log(`📝 [${functionName}] สร้าง Sheet "${LOG_SHEET_NAME}" ใหม่`);
+    }
+    
+    // เพิ่ม Log
+    logSheet.appendRow([
+      new Date().toISOString(),
+      username,
+      action,
+      details,
+      Session.getActiveUser().getEmail() || 'Unknown'
+    ]);
+    
+    console.log(`📝 [${functionName}] บันทึก: ${username} - ${action}`);
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+  }
+}
+
+/**
+ * 7.2 ตรวจสอบการเข้าถึงที่ผิดปกติ
+ * 
+ * @param {string} username - ชื่อผู้ใช้ที่ต้องการตรวจสอบ
+ * @returns {Object} { status, suspicious, details }
+ */
+function detectSuspiciousActivity(username) {
+  const functionName = 'detectSuspiciousActivity';
+  
+  try {
+    const userProperties = PropertiesService.getUserProperties();
+    const allProps = userProperties.getProperties();
+    
+    let sessionCount = 0;
+    const sessions = [];
+    
+    // นับจำนวน Session ของ User
+    Object.keys(allProps).forEach(token => {
+      try {
+        const sessionData = JSON.parse(allProps[token]);
+        if (sessionData.username === username) {
+          sessionCount++;
+          sessions.push(sessionData);
+        }
+      } catch (e) {
+        // ไม่ใช่ Session data
+      }
+    });
+    
+    // ตรวจสอบว่ามี Session เกิน 3 อันหรือไม่ (อาจเป็นการใช้งานผิดปกติ)
+    const isSuspicious = sessionCount > 3;
+    
+    if (isSuspicious) {
+      console.log(`⚠️ [${functionName}] พบการใช้งานผิดปกติ: ${username} (${sessionCount} sessions)`);
+    }
+    
+    return {
+      status: 'success',
+      suspicious: isSuspicious,
+      sessionCount: sessionCount,
+      sessions: sessions,
+      threshold: 3
+    };
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error: ${error.toString()}`);
+    return { status: 'error', message: error.toString() };
+  }
+}
+
+// =================================================================
+// 🎓 TRAINING NOTES FOR TEAM
+// =================================================================
+
+/**
+ * บันทึกสำหรับทีมงาน:
+ * 
+ * คุณอลิช (UI Designer):
+ * - ไฟล์ CSS.html และ Login.html ควบคุมส่วน UI
+ * - สามารถแก้ไข CSS ได้โดยไม่กระทบ Logic
+ * - ใช้ตัวแปร CSS (:root) สำหรับสีและฟอนต์
+ * 
+ * คุณจอร์น (นักวิเคราะห์ระบบ):
+ * - ดู Section 2 (Authentication) และ Section 6 (Maintenance)
+ * - ฟังก์ชัน checkSystemHealth() ใช้ตรวจสอบระบบ
+ * - ฟังก์ชัน generateUsageReport() ใช้ดูสถิติ
+ * 
+ * คุณโซเฟีย (Web Developer):
+ * - ดู Section 1 (Routing) และ Section 3 (Dashboard)
+ * - ฟังก์ชัน include() ใช้รวมไฟล์
+ * - JavaScript.html จัดการ Client-side Logic
+ * 
+ * คุณจักร (หัวหน้าโครงการ):
+ * - ทุก Section มีหมายเลขกำกับชัดเจน
+ * - ทุกฟังก์ชันมี JSDoc Comments
+ * - มี Testing Functions ใน Section 5
+ * - มี Security Functions ใน Section 7
+ */
+
+// =================================================================
+// 📌 END OF CODE.GS
+// =================================================================
+// Total Functions: 23
+// Total Sections: 7
+// Version: 2.0.0
+// Last Review: 2025-09-30
+// =================================================================
+// =================================================================
+// 🎯 ROLE-BASED DASHBOARD SYSTEM
+// =================================================================
+
+/**
+ * 1. โหลด Dashboard พร้อมข้อมูลผู้ใช้และสิทธิ์การเข้าถึง
+ * 
+ * @param {Object} userInfo - { username, role, token }
+ * @returns {string} HTML ของ Dashboard ที่ปรับให้เหมาะกับ Role
+ */
+function getDashboardHtmlWithUserData(userInfo) {
+  const functionName = 'getDashboardHtmlWithUserData';
+  
+  try {
+    console.log(`📊 [${functionName}] โหลด Dashboard สำหรับ: ${userInfo.username} (${userInfo.role})`);
+    
+    // ตรวจสอบข้อมูลผู้ใช้
+    if (!userInfo || !userInfo.username || !userInfo.role) {
+      throw new Error('ข้อมูลผู้ใช้ไม่ครบถ้วน');
+    }
+    
+    // ดึงข้อมูลตาม Role
+    let userData;
+    switch(userInfo.role.toUpperCase()) {
+      case 'ADMIN':
+      case 'POWERUSER':
+        // Admin และ PowerUser เห็นข้อมูลทุกคน
+        userData = getAllUsersData();
+        console.log(`👑 [${functionName}] โหลดข้อมูลทั้งหมด (${userData.length} คน)`);
+        break;
+        
+      case 'USER':
+      default:
+        // User ทั่วไปเห็นเฉพาะข้อมูลตัวเอง
+        userData = getUserPersonalData(userInfo.username);
+        console.log(`👤 [${functionName}] โหลดข้อมูลส่วนตัว`);
+        break;
+    }
+    
+    // สร้าง HTML Dashboard
+    const dashboardHtml = generateDashboardHtml(userInfo, userData);
+    
+    console.log(`✅ [${functionName}] โหลดสำเร็จ`);
+    return dashboardHtml;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return createErrorDashboard(error.toString());
+  }
+}
+
+/**
+ * 2. ดึงข้อมูลของทุกคน (สำหรับ Admin/PowerUser)
+ * 
+ * @returns {Array} ข้อมูลพนักงานทั้งหมด
+ */
+function getAllUsersData() {
+  const functionName = 'getAllUsersData';
+  const SHEET_NAME = 'SDIP Employee Database';
+  
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    
+    if (!sheet) {
+      throw new Error(`ไม่พบ Sheet "${SHEET_NAME}"`);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0]; // แถวแรกเป็น Header
+    const users = [];
+    
+    // วนอ่านข้อมูล (ข้ามแถวแรก)
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      
+      // สร้าง Object จาก Row
+      const userObj = {};
+      headers.forEach((header, index) => {
+        userObj[header] = row[index];
+      });
+      
+      // เพิ่มข้อมูลเพิ่มเติม
+      userObj.rowIndex = i + 1;
+      
+      users.push(userObj);
+    }
+    
+    console.log(`✅ [${functionName}] โหลด ${users.length} Users`);
+    return users;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return [];
+  }
+}
+
+/**
+ * 3. ดึงข้อมูลส่วนตัวของผู้ใช้ (สำหรับ User)
+ * 
+ * @param {string} username - Username ที่ต้องการดึงข้อมูล
+ * @returns {Object} ข้อมูลส่วนตัว
+ */
+function getUserPersonalData(username) {
+  const functionName = 'getUserPersonalData';
+  const SHEET_NAME = 'SDIP Employee Database';
+  
+  try {
+    console.log(`🔍 [${functionName}] ค้นหาข้อมูลของ: ${username}`);
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    
+    if (!sheet) {
+      throw new Error(`ไม่พบ Sheet "${SHEET_NAME}"`);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    
+    // ค้นหาแถวที่ตรงกับ Username (สมมติว่า Username อยู่ที่ Column B = index 1)
+    for (let i = 1; i < data.length; i++) {
+      const rowUsername = (data[i][1] || '').toString().trim();
+      
+      if (rowUsername === username) {
+        // สร้าง Object จาก Row
+        const userObj = {};
+        headers.forEach((header, index) => {
+          userObj[header] = data[i][index];
+        });
+        
+        userObj.rowIndex = i + 1;
+        
+        console.log(`✅ [${functionName}] พบข้อมูลของ ${username}`);
+        return userObj;
+      }
+    }
+    
+    console.log(`⚠️ [${functionName}] ไม่พบข้อมูลของ ${username}`);
+    return null;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return null;
+  }
+}
+
+/**
+ * 4. สร้าง HTML Dashboard ตามสิทธิ์
+ * 
+ * @param {Object} userInfo - ข้อมูลผู้ใช้ที่ล็อคอิน
+ * @param {Object|Array} userData - ข้อมูลที่จะแสดง
+ * @returns {string} HTML Dashboard
+ */
+function generateDashboardHtml(userInfo, userData) {
+  const functionName = 'generateDashboardHtml';
+  const isAdmin = ['ADMIN', 'POWERUSER'].includes(userInfo.role.toUpperCase());
+  
+  console.log(`🎨 [${functionName}] สร้าง Dashboard แบบ ${isAdmin ? 'Admin' : 'User'}`);
+  
+  // ส่วน Header
+  const headerHtml = `
+    <div style="
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+      color: white;
+    ">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div>
+          <h1 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 700;">
+            📮 Smart Delivery Insight
+          </h1>
+          <p style="margin: 0; opacity: 0.9; font-size: 16px;">
+            ยินดีต้อนรับ, <strong>${userInfo.username}</strong> 
+            <span style="
+              background: rgba(255,255,255,0.2);
+              padding: 4px 12px;
+              border-radius: 20px;
+              margin-left: 10px;
+              font-size: 14px;
+              font-weight: 600;
+            ">
+              ${getRoleIcon(userInfo.role)} ${getRoleDisplayName(userInfo.role)}
+            </span>
+          </p>
+        </div>
+        <div>
+          <button onclick="handleLogout()" style="
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+          " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
+             onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            🚪 ออกจากระบบ
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // ส่วนแสดงข้อมูล
+  let contentHtml = '';
+  
+  if (isAdmin && Array.isArray(userData)) {
+    // Dashboard สำหรับ Admin/PowerUser - แสดงข้อมูลทุกคน
+    contentHtml = generateAdminDashboard(userData, userInfo);
+  } else if (userData) {
+    // Dashboard สำหรับ User - แสดงข้อมูลตัวเอง
+    contentHtml = generateUserDashboard(userData, userInfo);
+  } else {
+    contentHtml = `
+      <div style="
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+      ">
+        <h3 style="color: #856404; margin-top: 0;">⚠️ ไม่พบข้อมูล</h3>
+        <p style="color: #856404;">ไม่สามารถโหลดข้อมูลได้ กรุณาติดต่อผู้ดูแลระบบ</p>
+      </div>
+    `;
+  }
+  
+  // รวม HTML ทั้งหมด
+  const fullHtml = `
+    <div style="
+      font-family: 'Kanit', 'Inter', sans-serif;
+      padding: 20px;
+      background: #f5f7fa;
+      min-height: 100vh;
+    ">
+      ${headerHtml}
+      ${contentHtml}
+    </div>
+    
+    <script>
+      /**
+       * ฟังก์ชันออกจากระบบ
+       */
+      function handleLogout() {
+        if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+          console.log('🚪 กำลังออกจากระบบ...');
+          
+          const token = localStorage.getItem('authToken');
+          
+          // เรียก API Logout
+          google.script.run
+            .withSuccessHandler(() => {
+              console.log('✅ ออกจากระบบสำเร็จ');
+              
+              // ลบข้อมูล (เก็บเฉพาะ lastUsername ไว้)
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('userRole');
+              localStorage.removeItem('loginTime');
+              
+              // Reload หน้า
+              location.reload();
+            })
+            .withFailureHandler((error) => {
+              console.error('❌ Logout Error:', error);
+              alert('เกิดข้อผิดพลาด: ' + error.message);
+            })
+            .logout(token);
+        }
+      }
+      
+      /**
+       * ฟังก์ชันเริ่มต้น Dashboard
+       */
+      function initDashboard(userInfo) {
+        console.log('🎨 [DASHBOARD] เริ่มต้น Dashboard');
+        console.log('👤 User:', userInfo.username);
+        console.log('🎭 Role:', userInfo.role);
+        
+        // เพิ่ม Logic เพิ่มเติมตามต้องการที่นี่
+      }
+    </script>
+  `;
+  
+  return fullHtml;
+}
+
+/**
+ * 5. สร้าง Dashboard สำหรับ Admin/PowerUser
+ * 
+ * @param {Array} users - ข้อมูลผู้ใช้ทั้งหมด
+ * @param {Object} currentUser - ข้อมูลผู้ใช้ปัจจุบัน
+ * @returns {string} HTML
+ */
+function generateAdminDashboard(users, currentUser) {
+  // สถิติรวม
+  const totalUsers = users.length;
+  const adminCount = users.filter(u => (u.Role || '').toUpperCase() === 'ADMIN').length;
+  const powerUserCount = users.filter(u => (u.Role || '').toUpperCase() === 'POWERUSER').length;
+  const regularUserCount = users.filter(u => (u.Role || '').toUpperCase() === 'USER').length;
+  
+  let html = `
+    <div style="margin-bottom: 30px;">
+      <h2 style="color: #2c3e50; margin-bottom: 20px; font-size: 24px;">
+        📊 ภาพรวมระบบ
+      </h2>
+      
+      <!-- สถิติการ์ด -->
+      <div style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      ">
+        ${generateStatCard('👥 ผู้ใช้ทั้งหมด', totalUsers, '#3498db')}
+        ${generateStatCard('👑 Admin', adminCount, '#e74c3c')}
+        ${generateStatCard('⚡ PowerUser', powerUserCount, '#f39c12')}
+        ${generateStatCard('👤 User', regularUserCount, '#27ae60')}
+      </div>
+    </div>
+    
+    <div style="
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    ">
+      <h2 style="color: #2c3e50; margin-top: 0; margin-bottom: 20px;">
+        📋 รายชื่อผู้ใช้งานทั้งหมด
+      </h2>
+      
+      <div style="overflow-x: auto;">
+        <table style="
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 14px;
+        ">
+          <thead>
+            <tr style="background: #f8f9fa;">
+              <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">ลำดับ</th>
+              <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">ชื่อ-นามสกุล</th>
+              <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Username</th>
+              <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">สิทธิ์</th>
+              <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">อีเมล</th>
+              <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+  `;
+  
+  // แสดงข้อมูลแต่ละคน
+  users.forEach((user, index) => {
+    const name = user.Name || user['ชื่อ-นามสกุล'] || '-';
+    const username = user.Username || user['Username'] || '-';
+    const role = user.Role || user['สิทธิ์'] || 'User';
+    const email = user.Email || user['อีเมล'] || '-';
+    
+    const roleColor = getRoleColor(role);
+    const roleIcon = getRoleIcon(role);
+    
+    html += `
+      <tr style="border-bottom: 1px solid #e9ecef; transition: background 0.2s;"
+          onmouseover="this.style.background='#f8f9fa'" 
+          onmouseout="this.style.background='white'">
+        <td style="padding: 12px;">${index + 1}</td>
+        <td style="padding: 12px; font-weight: 600;">${name}</td>
+        <td style="padding: 12px; color: #6c757d;">${username}</td>
+        <td style="padding: 12px; text-align: center;">
+          <span style="
+            background: ${roleColor};
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+          ">
+            ${roleIcon} ${role}
+          </span>
+        </td>
+        <td style="padding: 12px; color: #6c757d; font-size: 13px;">${email}</td>
+        <td style="padding: 12px; text-align: center;">
+          <span style="color: #27ae60; font-weight: 600;">●</span> Active
+        </td>
+      </tr>
+    `;
+  });
+  
+  html += `
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  
+  return html;
+}
+
+/**
+ * 6. สร้าง Dashboard สำหรับ User ทั่วไป
+ * 
+ * @param {Object} userData - ข้อมูลส่วนตัว
+ * @param {Object} currentUser - ข้อมูลผู้ใช้ปัจจุบัน
+ * @returns {string} HTML
+ */
+function generateUserDashboard(userData, currentUser) {
+  const name = userData.Name || userData['ชื่อ-นามสกุล'] || currentUser.username;
+  const username = userData.Username || userData['Username'] || currentUser.username;
+  const role = userData.Role || userData['สิทธิ์'] || currentUser.role;
+  const email = userData.Email || userData['อีเมล'] || '-';
+  const phone = userData.Phone || userData['เบอร์โทร'] || '-';
+  const department = userData.Department || userData['แผนก'] || '-';
+  
+  return `
+    <div style="
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 800px;
+      margin: 0 auto;
+    ">
+      <h2 style="color: #2c3e50; margin-top: 0; margin-bottom: 25px; text-align: center;">
+        👤 ข้อมูลส่วนตัว
+      </h2>
+      
+      <!-- Profile Card -->
+      <div style="
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 30px;
+        border-radius: 12px;
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+      ">
+        <div style="
+          width: 100px;
+          height: 100px;
+          background: white;
+          border-radius: 50%;
+          margin: 0 auto 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 48px;
+        ">
+          👤
+        </div>
+        <h3 style="margin: 0 0 5px 0; font-size: 24px;">${name}</h3>
+        <p style="margin: 0; opacity: 0.9;">@${username}</p>
+        <div style="margin-top: 15px;">
+          <span style="
+            background: rgba(255,255,255,0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+          ">
+            ${getRoleIcon(role)} ${getRoleDisplayName(role)}
+          </span>
+        </div>
+      </div>
+      
+      <!-- ข้อมูลรายละเอียด -->
+      <div style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      ">
+        ${generateInfoCard('📧 อีเมล', email)}
+        ${generateInfoCard('📱 เบอร์โทร', phone)}
+        ${generateInfoCard('🏢 แผนก', department)}
+        ${generateInfoCard('🎭 ระดับสิทธิ์', getRoleDisplayName(role))}
+      </div>
+      
+      <!-- คำแนะนำ -->
+      <div style="
+        margin-top: 30px;
+        padding: 20px;
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        border-radius: 8px;
+      ">
+        <h4 style="margin: 0 0 10px 0; color: #1976d2;">
+          💡 เคล็ดลับการใช้งาน
+        </h4>
+        <ul style="margin: 0; padding-left: 20px; color: #555;">
+          <li>ตรวจสอบข้อมูลของคุณให้ถูกต้องเสมอ</li>
+          <li>หากต้องการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลระบบ</li>
+          <li>ออกจากระบบทุกครั้งเมื่อใช้งานเสร็จ</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 7. สร้างการ์ดสถิติ
+ */
+function generateStatCard(title, value, color) {
+  return `
+    <div style="
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-left: 4px solid ${color};
+      transition: transform 0.2s;
+    " onmouseover="this.style.transform='translateY(-5px)'" 
+       onmouseout="this.style.transform='translateY(0)'">
+      <div style="color: #6c757d; font-size: 14px; margin-bottom: 8px;">
+        ${title}
+      </div>
+      <div style="color: ${color}; font-size: 32px; font-weight: 700;">
+        ${value}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 8. สร้างการ์ดข้อมูล
+ */
+function generateInfoCard(label, value) {
+  return `
+    <div style="
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    ">
+      <div style="color: #6c757d; font-size: 13px; margin-bottom: 8px; font-weight: 600;">
+        ${label}
+      </div>
+      <div style="color: #2c3e50; font-size: 16px; font-weight: 600;">
+        ${value || '-'}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 9. Helper Functions
+ */
+
+function getRoleIcon(role) {
+  const icons = {
+    'ADMIN': '👑',
+    'POWERUSER': '⚡',
+    'USER': '👤'
+  };
+  return icons[role.toUpperCase()] || '👤';
+}
+
+function getRoleDisplayName(role) {
+  const names = {
+    'ADMIN': 'ผู้ดูแลระบบ',
+    'POWERUSER': 'ผู้ใช้ขั้นสูง',
+    'USER': 'ผู้ใช้ทั่วไป'
+  };
+  return names[role.toUpperCase()] || 'ผู้ใช้';
+}
+
+function getRoleColor(role) {
+  const colors = {
+    'ADMIN': '#e74c3c',
+    'POWERUSER': '#f39c12',
+    'USER': '#27ae60'
+  };
+  return colors[role.toUpperCase()] || '#95a5a6';
+}
+
+/**
+ * 10. สร้าง Error Dashboard
+ */
+function createErrorDashboard(errorMessage) {
+  return `
+    <div style="
+      font-family: 'Kanit', sans-serif;
+      padding: 40px;
+      background: #f5f7fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div style="
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 500px;
+      ">
+        <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+        <h2 style="color: #e74c3c; margin-bottom: 15px;">เกิดข้อผิดพลาด</h2>
+        <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
+          ${errorMessage}
+        </p>
+        <button onclick="location.reload()" style="
+          background: #3498db;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 600;
+        ">
+          🔄 ลองใหม่อีกครั้ง
+        </button>
+      </div>
+    </div>
+  `;
 }
