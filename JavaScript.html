@@ -1,0 +1,86 @@
+<script>
+  const loginSection = document.getElementById('login-section');
+  const appSection = document.getElementById('app-section');
+  const statusDiv = document.getElementById('status');
+  const loginButton = document.getElementById('loginButton');
+
+  // ฟังก์ชันสำหรับแสดงหน้าหลักของโปรแกรม
+  function showApp(userInfo) {
+    google.script.run.withSuccessHandler(html => {
+      appSection.innerHTML = html;
+      loginSection.style.display = 'none';
+      appSection.style.display = 'block';
+
+      // แสดงข้อมูลผู้ใช้และเพิ่ม Event Listener ให้ปุ่ม Logout
+      document.getElementById('loggedInUser').innerText = userInfo.username;
+      document.getElementById('userRole').innerText = userInfo.role;
+      document.getElementById('logoutButton').addEventListener('click', handleLogout);
+
+    }).getDashboardHtml();
+  }
+
+  // ฟังก์ชันสำหรับแสดงหน้าล็อคอิน
+  function showLogin() {
+    appSection.style.display = 'none';
+    loginSection.style.display = 'block';
+  }
+
+  // --- Logic การตรวจสอบ Session เมื่อเปิดหน้าเว็บ ---
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('sessionToken');
+    if (token) {
+      statusDiv.innerText = "กำลังตรวจสอบเซสชัน...";
+      google.script.run.withSuccessHandler(response => {
+        if (response.status === 'valid') {
+          showApp(response);
+        } else {
+          localStorage.removeItem('sessionToken');
+          statusDiv.innerText = "";
+          showLogin();
+        }
+      }).checkSessionToken(token);
+    } else {
+      showLogin();
+    }
+  });
+
+  // --- Logic การกดปุ่ม Login ---
+  document.getElementById("loginForm").addEventListener("submit", function(event){
+    event.preventDefault();
+    loginButton.disabled = true;
+    statusDiv.innerText = "กำลังตรวจสอบ...";
+
+    const formData = {
+      username: document.getElementById("username").value,
+      password: document.getElementById("password").value
+    };
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (response.status === 'success') {
+          localStorage.setItem('sessionToken', response.token);
+          showApp({username: formData.username, role: response.role});
+        } else {
+          statusDiv.style.color = "red";
+          statusDiv.innerText = response.message;
+          loginButton.disabled = false;
+        }
+      })
+      .withFailureHandler(function(error) {
+        statusDiv.innerText = "เกิดข้อผิดพลาด: " + error.message;
+        loginButton.disabled = false;
+      })
+      .userLogin(formData);
+  });
+
+  // --- Logic การ Logout ---
+  function handleLogout() {
+    const token = localStorage.getItem('sessionToken');
+    if (token) {
+      google.script.run.logout(token);
+      localStorage.removeItem('sessionToken');
+    }
+    appSection.innerHTML = ""; // ล้างเนื้อหาหน้าหลัก
+    showLogin();
+  }
+</script>
