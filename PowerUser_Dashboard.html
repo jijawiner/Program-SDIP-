@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDIP - PowerUser Dashboard</title>
+    <?!= include('CSS'); ?>
+    <style>
+        /* PowerUser Specific Styles */
+        .poweruser-container {
+            min-height: 100vh;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2);
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .user-info-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: right;
+        }
+        
+        .user-info-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .user-info-role {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        
+        .action-bar-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .action-bar-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Team Grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1200px) {
+            .team-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Employee Card */
+        .employee-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .employee-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        /* แถบสี Gradient */
+        .status-bar {
+            height: 8px;
+            background: linear-gradient(to right, #d32f2f, #ff9800, #ffc107, #4caf50);
+        }
+        
+        .status-bar.red {
+            background: linear-gradient(to right, #d32f2f, #e57373);
+        }
+        
+        .status-bar.orange {
+            background: linear-gradient(to right, #ff9800, #ffb74d);
+        }
+        
+        .status-bar.yellow {
+            background: linear-gradient(to right, #ffc107, #ffd54f);
+        }
+        
+        .status-bar.green {
+            background: linear-gradient(to right, #4caf50, #81c784);
+        }
+        
+        .card-header {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .employee-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .employee-username {
+            font-size: 13px;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        
+        .employee-info {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        .mini-table {
+            width: 100%;
+            font-size: 12px;
+        }
+        
+        .mini-table th,
+        .mini-table td {
+            padding: 6px 4px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .mini-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        
+        .mini-table .total-row {
+            background: #fafafa;
+            font-weight: 700;
+        }
+        
+        /* Drilldown View */
+        #drilldownView {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f7fa;
+            z-index: 1000;
+            overflow: auto;
+        }
+        
+        .drilldown-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .drilldown-sidebar {
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: calc(100% - 50px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px 0 0 6px;
+            font-size: 14px;
+        }
+        
+        .search-btn {
+            width: 50px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-left: none;
+            border-radius: 0 6px 6px 0;
+            background: #1976d2;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .employee-list-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .employee-list-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .employee-list-item.active {
+            background: #e3f2fd;
+            border-left-color: #1976d2;
+        }
+        
+        .drilldown-content {
+            flex: 1;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+        
+        @media (max-width: 1024px) {
+            .drilldown-container {
+                flex-direction: column;
+            }
+            
+            .drilldown-sidebar {
+                width: 100%;
+                position: relative;
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poweruser-container" id="teamView">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="page-title">Team Performance Overview</div>
+            <div class="user-info-box">
+                <div class="user-info-name"><?= userInfo.username ?></div>
+                <div class="user-info-role"><?= userInfo.role === 'Admin' ? 'Administrator' : 'PowerUser' ?></div>
+                <div class="action-bar">
+                    <button class="action-bar-btn" onclick="goHome()">🏠 โฮม</button>
+                    <button class="action-bar-btn" onclick="openP301()">📝 ป.301</button>
+                    <button class="action-bar-btn" onclick="openReport()">📊 รายงาน</button>
+                    <button class="action-bar-btn" onclick="openReturn()">📤 รับคืน</button>
+                    <button class="action-bar-btn" onclick="handleLogout()">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Team Grid -->
+        <div class="team-grid" id="teamGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>กำลังโหลดข้อมูลทีม...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Drilldown View -->
+    <div id="drilldownView">
+        <div class="drilldown-container">
+            <!-- Sidebar -->
+            <div class="drilldown-sidebar">
+                <button class="back-btn" onclick="closeDrilldown()">← กลับ</button>
+                
+                <div class="search-box">
+                    <input type="text" 
+                           class="search-input" 
+                           id="searchInput" 
+                           placeholder="ค้นหาพนักงาน...">
+                    <button class="search-btn" onclick="searchEmployee()">🔍</button>
+                </div>
+                
+                <div id="employeeList"></div>
+            </div>
+            
+            <!-- Content -->
+            <div class="drilldown-content" id="drilldownContent">
+                <!-- Dashboard Component จะถูกโหลดที่นี่ -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    
+    <script>
+        const currentUser = {
+            username: '<?= userInfo.username ?>',
+            role: '<?= userInfo.role ?>',
+            token: localStorage.getItem('authToken')
+        };
+        
+        let teamData = <?!= JSON.stringify(teamData) ?>;
+        let selectedEmployee = null;
+        
+        // โหลดข้อมูลทีม
+        function loadTeamGrid() {
+            const grid = document.getElementById('teamGrid');
+            
+            if (!teamData || teamData.length === 0) {
+                grid.innerHTML = '<div class="error">ไม่พบข้อมูลพนักงาน</div>';
+                return;
+            }
+            
+            const html = teamData.map(emp => `
+                <div class="employee-card" onclick="openDrilldown('${emp.username}')">
+                    <div class="status-bar ${emp.colorClass}"></div>
+                    <div class="card-header">
+                        <div class="employee-name">👤 ${emp.fullName}</div>
+                        <div class="employee-username">${emp.username}</div>
+                        <div class="employee-info">
+                            ${emp.side} | ${emp.area} | ${emp.routes}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>ส่งเงิน</th>
+                                    <th>เตรียม</th>
+                                    <th>บันทึก</th>
+                                    <th>ค้าง</th>
+                                    <th>คืน</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>R</td>
+                                    <td>-</td>
+                                    <td>${emp.workData.prepare.r}</td>
+                                    <td>${emp.workData.recorded.r}</td>
+                                    <td>${emp.workData.backlog.r}</td>
+                                    <td>${emp.workData.returned.r}</td>
+                                </tr>
+                                <tr>
+                                    <td>EMS</td>
+                                    <td>-</td>
+                                    <td>${emp.workData.prepare.ems}</td>
+                                    <td>${emp.workData.recorded.ems}</td>
+                                    <td>${emp.workData.backlog.ems}</td>
+                                    <td>${emp.workData.returned.ems}</td>
+                                </tr>
+                                <tr>
+                                    <td>COD</td>
+                                    <td>${emp.workData.sendMoney.cod}</td>
+                                    <td>${emp.workData.prepare.cod}</td>
+                                    <td>${emp.workData.recorded.cod}</td>
+                                    <td>${emp.workData.backlog.cod}</td>
+                                    <td>${emp.workData.returned.cod}</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td>รวม</td>
+                                    <td>${emp.workData.sendMoney.total}</td>
+                                    <td>${emp.workData.prepare.total}</td>
+                                    <td>${emp.workData.recorded.total}</td>
+                                    <td>${emp.workData.backlog.total}</td>
+                                    <td>${emp.workData.returned.total}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `).join('');
+            
+            grid.innerHTML = html;
+        }
+        
+        // เปิด Drilldown
+        function openDrilldown(username) {
+            selectedEmployee = username;
+            document.getElementById('teamView').style.display = 'none';
+            document.getElementById('drilldownView').style.display = 'block';
+            
+            loadEmployeeList();
+            loadEmployeeDashboard(username);
+        }
+        
+        // ปิด Drilldown
+        function closeDrilldown() {
+            document.getElementById('drilldownView').style.display = 'none';
+            document.getElementById('teamView').style.display = 'block';
+        }
+        
+        // โหลดรายชื่อพนักงาน
+        function loadEmployeeList() {
+            const list = document.getElementById('employeeList');
+            
+            const html = teamData.map(emp => `
+                <div class="employee-list-item ${emp.username === selectedEmployee ? 'active' : ''}"
+                     onclick="selectEmployee('${emp.username}')">
+                    <div style="font-weight: 600; font-size: 14px;">${emp.fullName}</div>
+                    <div style="font-size: 12px; color: #666;">${emp.username}</div>
+                </div>
+            `).join('');
+            
+            list.innerHTML = html;
+        }
+        
+        // เลือกพนักงาน
+        function selectEmployee(username) {
+            selectedEmployee = username;
+            loadEmployeeList();
+            loadEmployeeDashboard(username);
+        }
+        
+        // ค้นหาพนักงาน
+        function searchEmployee() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = teamData.filter(emp => 
+                emp.fullName.toLowerCase().includes(query) || 
+                emp.username.toLowerCase().includes(query)
+            );
+            
+            const list = document.getElementById('employeeList');
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">ไม่พบผลลัพธ์</div>';
+                return;
+            }
+            
+            const html = filtered.map(emp => `
+                <div class="employee-list-item ${emp.username === selectedEmployee ? 'active' : ''}"
+                     onclick="selectEmployee('${emp.username}')">
+                    <div style="font-weight: 600; font-size: 14px;">${emp.fullName}</div>
+                    <div style="font-size: 12px; color: #666;">${emp.username}</div>
+                </div>
+            `).join('');
+            
+            list.innerHTML = html;
+        }
+        
+        // โหลด Dashboard ของพนักงาน
+        function loadEmployeeDashboard(username) {
+            const emp = teamData.find(e => e.username === username);
+            
+            if (!emp) {
+                document.getElementById('drilldownContent').innerHTML = '<div class="error">ไม่พบข้อมูลพนักงาน</div>';
+                return;
+            }
+            
+            window.workData = emp.workData;
+            window.currentUser = { username: emp.username };
+            
+            const html = `
+                <div class="content-header">
+                    <div class="content-title">${emp.fullName}</div>
+                    <div class="content-subtitle">${emp.username} | ${emp.side} | ${emp.area}</div>
+                </div>
+                <?!= include('DashboardComponent'); ?>
+            `;
+            
+            document.getElementById('drilldownContent').innerHTML = html;
+            
+            // โหลดข้อมูล
+            if (typeof loadWorkData === 'function') {
+                loadWorkData(emp.workData);
+            }
+        }
+        
+        // ฟังก์ชันเพิ่มเติม
+        function goHome() {
+            closeDrilldown();
+        }
+        
+        function openP301() {
+            window.open('https://example.com/p301', '_blank');
+        }
+        
+        function openReport() {
+            window.open('https://example.com/report', '_blank');
+        }
+        
+        function openReturn() {
+            window.open('https://example.com/return', '_blank');
+        }
+        
+        function handleLogout() {
+            if (confirm('ออกจากระบบ?')) {
+                google.script.run
+                    .withSuccessHandler(() => {
+                        localStorage.clear();
+                        location.reload();
+                    })
+                    .logout(currentUser.token);
+            }
+        }
+        
+        // โหลดหน้า
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTeamGrid();
+        });
+    </script>
+</body>
+</html>
