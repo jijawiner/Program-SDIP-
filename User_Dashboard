@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDIP - User Dashboard</title>
+    <?!= include('CSS'); ?>
+    <style>
+        /* เพิ่ม CSS เฉพาะหน้า User */
+        .user-container {
+            display: flex;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+        
+        .user-sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-profile {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 20px;
+        }
+        
+        .user-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .user-username {
+            font-size: 14px;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        
+        .user-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .user-info-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .user-info-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .action-buttons {
+            margin-top: auto;
+            padding-top: 20px;
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+        
+        .content-header {
+            background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2);
+        }
+        
+        .content-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .content-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        /* Responsive */
+        @media screen and (max-width: 768px) {
+            .user-container {
+                flex-direction: column;
+            }
+            
+            .user-sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="user-container">
+        <!-- Sidebar -->
+        <div class="user-sidebar">
+            <div class="user-profile">
+                <div class="user-icon">👤</div>
+                <div class="user-name"><?= userProfile.Name || userProfile['ชื่อ-สกุล'] ?></div>
+                <div class="user-username"><?= userInfo.username ?></div>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-info-item">
+                    <span class="user-info-label">ด้านจ่าย:</span>
+                    <span class="user-info-value"><?= userProfile.Side || userProfile['ด้าน'] ?></span>
+                </div>
+                <div class="user-info-item">
+                    <span class="user-info-label">พื้นที่:</span>
+                    <span class="user-info-value"><?= userProfile.Area || userProfile['พื้นที่'] ?></span>
+                </div>
+                <div class="user-info-item">
+                    <span class="user-info-label">เส้นทาง:</span>
+                    <span class="user-info-value"><?= userProfile.small || userProfile['เส้นทาง'] ?></span>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn btn-primary" onclick="openP301()">
+                    📝 บันทึก ป.301
+                </button>
+                <button class="action-btn btn-secondary" onclick="openReport()">
+                    📊 รายงาน ป.301
+                </button>
+                <button class="action-btn btn-danger" onclick="handleLogout()">
+                    🚪 ออกจากระบบ
+                </button>
+            </div>
+        </div>
+        
+      <!-- Main Content -->
+<div class="main-content">
+    <div class="content-header">
+        <div class="content-title">My Work Overview</div>
+        <div class="content-subtitle">ภาพรวมงานของคุณ <?= userProfile.Name || userProfile['ชื่อ-สกุล'] ?></div>
+    </div>
+    
+    <!-- ⭐ ประกาศตัวแปรก่อน include Component -->
+    <script>
+        // ประกาศตัวแปรให้ DashboardComponent ใช้
+        var workData = <?!= JSON.stringify(userData) ?>;
+        var currentUser = {
+            username: '<?= userInfo.username ?>',
+            role: '<?= userInfo.role ?>',
+            token: localStorage.getItem('authToken')
+        };
+        
+        console.log('📊 [USER DASHBOARD] workData ถูกประกาศ:', workData);
+    </script>
+    
+    <!-- ตาราง My Work Overview -->
+    <div class="work-overview-container">
+        <?!= include('DashboardComponent'); ?>
+    </div>
+</div>
+
+<!-- ปิด container หลัก -->
+</div>
+
+<!-- Script หลักของ User Dashboard (วางไว้ด้านล่างสุด) -->
+<script>
+    /**
+     * เปิดลิงก์ ป.301
+     */
+    function openP301() {
+        // TODO: ใส่ลิงก์จริง
+        window.open('https://example.com/p301', '_blank');
+    }
+    
+    /**
+     * เปิดลิงก์รายงาน
+     */
+    function openReport() {
+        // TODO: ใส่ลิงก์จริง
+        window.open('https://example.com/report', '_blank');
+    }
+    
+    /**
+     * ออกจากระบบ
+     */
+    function handleLogout() {
+        if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+            google.script.run
+                .withSuccessHandler(() => {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('loginTime');
+                    location.reload();
+                })
+                .logout(currentUser.token);
+        }
+    }
+</script>
+</body>
+</html>
