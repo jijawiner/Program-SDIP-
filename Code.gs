@@ -1139,6 +1139,13 @@ function detectSuspiciousActivity(username) {
  * @param {Object} userInfo - { username, role, token }
  * @returns {string} HTML ของ Dashboard ที่ปรับให้เหมาะกับ Role
  */
+// =================================================================
+// 🎯 ROLE-BASED DASHBOARD SYSTEM (ปรับปรุงใหม่)
+// =================================================================
+
+/**
+ * โหลด Dashboard ตาม Role ของผู้ใช้
+ */
 function getDashboardHtmlWithUserData(userInfo) {
   const functionName = 'getDashboardHtmlWithUserData';
   
@@ -1150,34 +1157,73 @@ function getDashboardHtmlWithUserData(userInfo) {
       throw new Error('ข้อมูลผู้ใช้ไม่ครบถ้วน');
     }
     
-    // ดึงข้อมูลตาม Role
-    let userData;
-    switch(userInfo.role.toUpperCase()) {
-      case 'ADMIN':
-      case 'POWERUSER':
-        // Admin และ PowerUser เห็นข้อมูลทุกคน
-        userData = getAllUsersData();
-        console.log(`👑 [${functionName}] โหลดข้อมูลทั้งหมด (${userData.length} คน)`);
-        break;
-        
+    // แยกหน้าตาม Role
+    const role = userInfo.role.toUpperCase();
+    
+    switch(role) {
       case 'USER':
+        return getUserDashboardHtml(userInfo);
+        
+      case 'POWERUSER':
+        return getPowerUserDashboardHtml(userInfo);
+        
+      case 'ADMIN':
+        return getAdminDashboardHtml(userInfo);
+        
       default:
-        // User ทั่วไปเห็นเฉพาะข้อมูลตัวเอง
-        userData = getUserPersonalData(userInfo.username);
-        console.log(`👤 [${functionName}] โหลดข้อมูลส่วนตัว`);
-        break;
+        throw new Error(`Role ไม่ถูกต้อง: ${userInfo.role}`);
     }
-    
-    // สร้าง HTML Dashboard
-    const dashboardHtml = generateDashboardHtml(userInfo, userData);
-    
-    console.log(`✅ [${functionName}] โหลดสำเร็จ`);
-    return dashboardHtml;
     
   } catch (error) {
     console.error(`❌ [${functionName}] Error:`, error.toString());
     return createErrorDashboard(error.toString());
   }
+}
+
+/**
+ * โหลดหน้า User Dashboard
+ */
+function getUserDashboardHtml(userInfo) {
+  console.log(`👤 [USER] โหลด Dashboard สำหรับ ${userInfo.username}`);
+  
+  // ดึงข้อมูลของ User คนนี้
+  const userData = getUserWorkOverview(userInfo.username);
+  const userProfile = getUserPersonalData(userInfo.username);
+  
+  // สร้าง HTML
+  const template = HtmlService.createTemplateFromFile('User_Dashboard');
+  template.userInfo = userInfo;
+  template.userData = userData;
+  template.userProfile = userProfile;
+  
+  return template.evaluate().getContent();
+}
+
+/**
+ * โหลดหน้า PowerUser Dashboard
+ */
+function getPowerUserDashboardHtml(userInfo) {
+  console.log(`⚡ [POWERUSER] โหลด Dashboard สำหรับ ${userInfo.username}`);
+  
+  // ดึงข้อมูลทีมทั้งหมด
+  const teamData = getPowerUserTeamData();
+  
+  // สร้าง HTML
+  const template = HtmlService.createTemplateFromFile('PowerUser_Dashboard');
+  template.userInfo = userInfo;
+  template.teamData = teamData;
+  
+  return template.evaluate().getContent();
+}
+
+/**
+ * โหลดหน้า Admin Dashboard
+ */
+function getAdminDashboardHtml(userInfo) {
+  console.log(`👑 [ADMIN] โหลด Dashboard สำหรับ ${userInfo.username}`);
+  
+  // Admin ใช้หน้าเดียวกับ PowerUser
+  return getPowerUserDashboardHtml(userInfo);
 }
 
 /**
@@ -1651,25 +1697,320 @@ function generateStatCard(title, value, color) {
   `;
 }
 
+// =================================================================
+// 📂 SECTION 8: DATA RETRIEVAL FUNCTIONS (เวอร์ชันสมบูรณ์)
+// =================================================================
+
 /**
- * 8. สร้างการ์ดข้อมูล
+ * 8.1 ดึงข้อมูล Work Overview ของ User
  */
-function generateInfoCard(label, value) {
-  return `
-    <div style="
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 8px;
-      border: 1px solid #e9ecef;
-    ">
-      <div style="color: #6c757d; font-size: 13px; margin-bottom: 8px; font-weight: 600;">
-        ${label}
-      </div>
-      <div style="color: #2c3e50; font-size: 16px; font-weight: 600;">
-        ${value || '-'}
-      </div>
-    </div>
-  `;
+function getUserWorkOverview(username) {
+  const functionName = 'getUserWorkOverview';
+  const startTime = new Date().getTime();
+  
+  try {
+    console.log(`📊 [${functionName}] ดึงข้อมูลสำหรับ: ${username}`);
+    
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // ดึงข้อมูลจากชีตจริง (ชื่อตามไฟล์ Excel)
+    const wrpData = getDataFromSheet(spreadsheet, 'SDIP WRP รายละเอียด', username);
+    const wmsData = getDataFromSheet(spreadsheet, 'SDIP WMS เงินที่ต้องนำส่ง', username);
+    
+    // งานค้างแยกตาม R/EMS/COD
+    const backlogR = getDataFromSheet(spreadsheet, 'SDIP Backlog R', username);
+    const backlogEMS = getDataFromSheet(spreadsheet, 'SDIP Backlog EMS', username);
+    const backlogCOD = getDataFromSheet(spreadsheet, 'SDIP Backlog COD', username);
+    
+    // งานคืนแยกตาม R/EMS/COD
+    const returnedR = getDataFromSheet(spreadsheet, 'SDIP Returned R', username);
+    const returnedEMS = getDataFromSheet(spreadsheet, 'SDIP Returned  EMS', username);
+    const returnedCOD = getDataFromSheet(spreadsheet, 'SDIP Returned  COD', username);
+    
+    console.log(`📊 [${functionName}] WRP: ${wrpData.length}, WMS: ${wmsData.length}`);
+    console.log(`📊 [${functionName}] Backlog R:${backlogR.length} EMS:${backlogEMS.length} COD:${backlogCOD.length}`);
+    console.log(`📊 [${functionName}] Return R:${returnedR.length} EMS:${returnedEMS.length} COD:${returnedCOD.length}`);
+    
+    // คำนวณสถิติ
+    const overview = {
+      sendMoney: {
+        r: 0,
+        ems: 0,
+        cod: countCOD(wmsData),
+        total: countCOD(wmsData)
+      },
+      prepare: calculateByType(wrpData),
+      recorded: calculateRecorded(wrpData),
+      backlog: {
+        r: backlogR.length,
+        ems: backlogEMS.length,
+        cod: backlogCOD.length,
+        total: backlogR.length + backlogEMS.length + backlogCOD.length
+      },
+      returned: {
+        r: returnedR.length,
+        ems: returnedEMS.length,
+        cod: returnedCOD.length,
+        total: returnedR.length + returnedEMS.length + returnedCOD.length
+      }
+    };
+    
+    const processTime = new Date().getTime() - startTime;
+    console.log(`✅ [${functionName}] สำเร็จ (${processTime}ms)`);
+    console.log(`📊 [${functionName}] ผลลัพธ์:`, JSON.stringify(overview));
+    
+    return overview;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    
+    return {
+      sendMoney: { r: 0, ems: 0, cod: 0, total: 0 },
+      prepare: { r: 0, ems: 0, cod: 0, total: 0 },
+      recorded: { r: 0, ems: 0, cod: 0, total: 0 },
+      backlog: { r: 0, ems: 0, cod: 0, total: 0 },
+      returned: { r: 0, ems: 0, cod: 0, total: 0 }
+    };
+  }
+}
+
+/**
+ * 8.2 ดึงข้อมูลทีมทั้งหมด (สำหรับ PowerUser)
+ */
+function getPowerUserTeamData() {
+  const functionName = 'getPowerUserTeamData';
+  const startTime = new Date().getTime();
+  
+  try {
+    console.log(`📊 [${functionName}] ดึงข้อมูลทีมทั้งหมด...`);
+    
+    const employees = getAllUsersData();
+    const teamData = [];
+    
+    employees.forEach(emp => {
+      const username = emp.Username;
+      
+      if (username && emp.Role && emp.Role.trim().toUpperCase() === 'USER') {
+        const workData = getUserWorkOverview(username);
+        
+        const prepare = workData.prepare.total || 0;
+        const recorded = workData.recorded.total || 0;
+        const percentage = prepare > 0 ? Math.round((recorded / prepare) * 100) : 100;
+        
+        teamData.push({
+          username: username,
+          fullName: emp.Name || username,
+          side: emp['Side '] || emp.Side || '',
+          area: emp.Area || '',
+          routes: emp.small || '',
+          workData: workData,
+          percentage: percentage,
+          colorClass: getColorClass(percentage)
+        });
+      }
+    });
+    
+    teamData.sort((a, b) => a.percentage - b.percentage);
+    
+    const processTime = new Date().getTime() - startTime;
+    console.log(`✅ [${functionName}] โหลด ${teamData.length} คน (${processTime}ms)`);
+    
+    return teamData;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return [];
+  }
+}
+
+/**
+ * 8.3 ดึงข้อมูลรายละเอียดจากชีต
+ */
+function getDetailWorkData(dataType, workType, username) {
+  const functionName = 'getDetailWorkData';
+  
+  try {
+    console.log(`📋 [${functionName}] Type: ${dataType}, WorkType: ${workType}, User: ${username || 'ALL'}`);
+    
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    
+    let sheetName;
+    if (dataType === 'backlog') {
+      if (workType === 'R') sheetName = 'SDIP Backlog R';
+      else if (workType === 'EMS') sheetName = 'SDIP Backlog EMS';
+      else if (workType === 'COD') sheetName = 'SDIP Backlog COD';
+    } else {
+      if (workType === 'R') sheetName = 'SDIP Returned R';
+      else if (workType === 'EMS') sheetName = 'SDIP Returned  EMS';
+      else if (workType === 'COD') sheetName = 'SDIP Returned  COD';
+    }
+    
+    const sheet = spreadsheet.getSheetByName(sheetName);
+    
+    if (!sheet) {
+      throw new Error(`ไม่พบชีต: ${sheetName}`);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = [];
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const operator = (row[3] || '').toString().trim();
+      
+      if (username && operator !== username) {
+        continue;
+      }
+      
+      rows.push(row);
+    }
+    
+    console.log(`✅ [${functionName}] พบ ${rows.length} รายการ`);
+    
+    return {
+      status: 'success',
+      headers: headers,
+      data: rows
+    };
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return {
+      status: 'error',
+      message: error.toString(),
+      headers: [],
+      data: []
+    };
+  }
+}
+
+// =================================================================
+// HELPER FUNCTIONS
+// =================================================================
+
+/**
+/**
+ * ดึงข้อมูลจากชีต (รองรับหลาย column index)
+ */
+function getDataFromSheet(spreadsheet, sheetName, username) {
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) {
+    console.warn(`⚠️ ไม่พบชีต: ${sheetName}`);
+    return [];
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const result = [];
+  
+  // กำหนด column index ตามชีต
+  let operatorColumnIndex;
+  
+  // เฉพาะชีต WRP อยู่คอลัมน์ C (index 2)
+  if (sheetName === 'SDIP WRP รายละเอียด') {
+    operatorColumnIndex = 2; // คอลัมน์ C
+  } else {
+    // ชีตอื่นๆ ทั้งหมดอยู่คอลัมน์ D (index 3)
+    operatorColumnIndex = 3; // คอลัมน์ D
+  }
+  
+  for (let i = 1; i < data.length; i++) {
+    const operator = (data[i][operatorColumnIndex] || '').toString().trim();
+    
+    if (operator === username) {
+      result.push(data[i]);
+    }
+  }
+  
+  console.log(`   ✓ [${sheetName}] → ${result.length} รายการ (column ${operatorColumnIndex === 2 ? 'C' : 'D'})`);
+  return result;
+}
+
+/**
+ * คำนวณสถิติแยกตาม R/EMS/COD
+ */
+function calculateByType(data) {
+  const stats = { r: 0, ems: 0, cod: 0, total: 0 };
+  
+  data.forEach(row => {
+    const trackingNumber = (row[1] || '').toString().trim(); // index 1 = คอลัมน์ที่ 2
+    
+    if (trackingNumber.startsWith('R')) {
+      stats.r++;
+    } else if (trackingNumber.startsWith('E')) {
+      stats.ems++;
+    } else if (trackingNumber.startsWith('W') || trackingNumber.startsWith('J')) {
+      stats.cod++;
+    }
+  });
+  
+  stats.total = stats.r + stats.ems + stats.cod;
+  return stats;
+}
+
+/**
+ * คำนวณข้อมูลที่บันทึกแล้ว
+ */
+function calculateRecorded(data) {
+  const stats = { r: 0, ems: 0, cod: 0, total: 0 };
+  
+  data.forEach(row => {
+    const trackingNumber = (row[1] || '').toString().trim();
+    const status = (row[5] || '').toString().trim();
+    
+    // เช็คว่ามีสถานะที่ไม่ใช่ค่าว่างและไม่ใช่ "ไม่ได้บันทึกนำจ่าย"
+    // สถานะที่บันทึกแล้วจะเป็น เช่น "สถานะ : (I) โทรศัพท์ติดต่อผู้รับไม่ได้"
+    const isRecorded = status && 
+                      status.includes('สถานะ :') && 
+                      status.length > 10; // มีข้อความมากกว่า "สถานะ :"
+    
+    if (isRecorded) {
+      if (trackingNumber.startsWith('R')) {
+        stats.r++;
+      } else if (trackingNumber.startsWith('E')) {
+        stats.ems++;
+      } else if (trackingNumber.startsWith('W') || trackingNumber.startsWith('J')) {
+        stats.cod++;
+      }
+    }
+  });
+  
+  stats.total = stats.r + stats.ems + stats.cod;
+  return stats;
+}
+
+/**
+ * นับจำนวน COD
+ */
+function countCOD(data) {
+  return data.filter(row => {
+    const trackingNumber = (row[1] || '').toString().trim();
+    return trackingNumber.startsWith('W') || trackingNumber.startsWith('J');
+  }).length;
+}
+
+/**
+ * ตรวจสอบว่า tracking number ตรงกับ workType หรือไม่
+ */
+function matchesWorkType(trackingNumber, workType) {
+  if (workType === 'R') {
+    return trackingNumber.startsWith('R');
+  } else if (workType === 'EMS') {
+    return trackingNumber.startsWith('E');
+  } else if (workType === 'COD') {
+    return trackingNumber.startsWith('W') || trackingNumber.startsWith('J');
+  }
+  return false;
+}
+
+/**
+ * กำหนด CSS Class ตาม %
+ */
+function getColorClass(percentage) {
+  if (percentage >= 100) return 'green';
+  if (percentage >= 81) return 'yellow';
+  if (percentage >= 31) return 'orange';
+  return 'red';
 }
 
 /**
@@ -1745,4 +2086,21 @@ function createErrorDashboard(errorMessage) {
       </div>
     </div>
   `;
+}
+/**
+ * ฟังก์ชันทดสอบ - รันใน Apps Script Editor
+ */
+function testGetUserWorkOverview() {
+  // เปลี่ยน username เป็นของจริงในระบบ
+  const testUsername = 'desrit.wi'; 
+  
+  console.log('🧪 เริ่มทดสอบ getUserWorkOverview...');
+  
+  const result = getUserWorkOverview(testUsername);
+  
+  console.log('📊 ผลลัพธ์:');
+  console.log(JSON.stringify(result, null, 2));
+  
+  Logger.log('=== ผลลัพธ์ ===');
+  Logger.log(JSON.stringify(result, null, 2));
 }
