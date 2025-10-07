@@ -372,65 +372,105 @@
     }
     
     /**
-     * 4.2 โหลด Dashboard ตามสิทธิ์การเข้าถึง
-     */
-    function loadDashboard(userInfo) {
-      console.log('🔄 [DASHBOARD] เริ่มโหลด...');
+  * 4.2 โหลด Dashboard ตามสิทธิ์การเข้าถึง
+ */
+function loadDashboard(userInfo) {
+  console.log('🔄 [DASHBOARD] เริ่มโหลด...');
+  console.log('📊 [DASHBOARD] userInfo:', userInfo);
+  
+  showLoading(true, 'กำลังดึงข้อมูลรายงาน...');
+  
+  // ⭐ แก้ไข: ส่ง username, role, token แยกกัน (ไม่ส่ง object)
+  google.script.run
+    .withSuccessHandler((dashboardHtml) => {
+      console.log('✅ [DASHBOARD] โหลดสำเร็จ');
       
-      showLoading(true, 'เข้าสูระบบ SDIP...');
+      // แสดง Dashboard
+      displayDashboard(dashboardHtml, userInfo);
+    })
+    .withFailureHandler((error) => {
+      console.error('❌ [DASHBOARD ERROR]:', error);
+      showLoading(false);
+      showError('📊 ไม่สามารถโหลด Dashboard ได้: ' + error.message);
+    })
+    .getDashboardHtmlWithUserData(
+      userInfo.username,  // ส่ง username
+      userInfo.role,      // ส่ง role
+      userInfo.token      // ส่ง token
+    );
+}
+    
+  /**
+ * 4.3 แสดง Dashboard และซ่อนหน้า Login
+ */
+function displayDashboard(html, userInfo) {
+  console.log('🎨 [DISPLAY] แสดง Dashboard...');
+  
+  // ⭐ วิธีใหม่: แยก script ออกมาแล้ว execute
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // Extract scripts
+  const scripts = tempDiv.querySelectorAll('script');
+  const scriptContents = [];
+  
+  scripts.forEach(script => {
+    if (script.textContent) {
+      scriptContents.push(script.textContent);
+    }
+    script.remove(); // ลบ script tag ออกจาก HTML
+  });
+  
+  console.log(`📜 [DISPLAY] พบ ${scriptContents.length} scripts`);
+  
+  // แทรก HTML (ไม่มี script tags แล้ว)
+  dashboardContainer.innerHTML = tempDiv.innerHTML;
+  
+  console.log('✅ [DISPLAY] แทรก HTML สำเร็จ');
+  
+  // Execute scripts ทีละตัว
+  scriptContents.forEach((scriptContent, index) => {
+    try {
+      console.log(`🔧 [DISPLAY] กำลัง execute script ${index + 1}...`);
       
-      // เรียก API เพื่อโหลด Dashboard พร้อมข้อมูลผู้ใช้
-      google.script.run
-        .withSuccessHandler((dashboardHtml) => {
-          console.log('✅ [DASHBOARD] โหลดสำเร็จ');
-          
-          // แสดง Dashboard
-          displayDashboard(dashboardHtml, userInfo);
-        })
-        .withFailureHandler((error) => {
-          console.error('❌ [DASHBOARD ERROR]:', error);
-          showLoading(false);
-          showError('📊 ไม่สามารถโหลด Dashboard ได้: ' + error.message);
-        })
-        .getDashboardHtmlWithUserData(userInfo);
+      // สร้าง script element ใหม่
+      const scriptElement = document.createElement('script');
+      scriptElement.textContent = scriptContent;
+      document.body.appendChild(scriptElement);
+      
+      console.log(`✅ [DISPLAY] Execute script ${index + 1} สำเร็จ`);
+    } catch (error) {
+      console.error(`❌ [DISPLAY] Error executing script ${index + 1}:`, error);
+    }
+  });
+  
+  // ซ่อนหน้า Login ด้วย Animation
+  loginContainer.style.transition = 'all 0.5s ease-out';
+  loginContainer.style.opacity = '0';
+  loginContainer.style.transform = 'scale(0.95)';
+  
+  setTimeout(() => {
+    loginContainer.style.display = 'none';
+    
+    // แสดง Dashboard ด้วย Animation
+    dashboardContainer.style.display = 'block';
+    dashboardContainer.style.opacity = '0';
+    dashboardContainer.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      dashboardContainer.style.transition = 'all 0.5s ease-out';
+      dashboardContainer.style.opacity = '1';
+      dashboardContainer.style.transform = 'translateY(0)';
+    }, 50);
+    
+    // เรียกใช้ฟังก์ชันเริ่มต้น Dashboard
+    if (typeof initDashboard === 'function') {
+      initDashboard(userInfo);
     }
     
-    /**
-     * 4.3 แสดง Dashboard และซ่อนหน้า Login
-     */
-    function displayDashboard(html, userInfo) {
-      console.log('🎨 [DISPLAY] แสดง Dashboard...');
-      
-      // แทรก HTML ของ Dashboard
-      dashboardContainer.innerHTML = html;
-      
-      // ซ่อนหน้า Login ด้วย Animation
-      loginContainer.style.transition = 'all 0.5s ease-out';
-      loginContainer.style.opacity = '0';
-      loginContainer.style.transform = 'scale(0.95)';
-      
-      setTimeout(() => {
-        loginContainer.style.display = 'none';
-        
-        // แสดง Dashboard ด้วย Animation
-        dashboardContainer.style.display = 'block';
-        dashboardContainer.style.opacity = '0';
-        dashboardContainer.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-          dashboardContainer.style.transition = 'all 0.5s ease-out';
-          dashboardContainer.style.opacity = '1';
-          dashboardContainer.style.transform = 'translateY(0)';
-        }, 50);
-        
-        // เรียกใช้ฟังก์ชันเริ่มต้น Dashboard
-        if (typeof initDashboard === 'function') {
-          initDashboard(userInfo);
-        }
-        
-        console.log('✅ [DISPLAY] แสดง Dashboard สำเร็จ');
-      }, 500);
-    }
+    console.log('✅ [DISPLAY] แสดง Dashboard สำเร็จ');
+  }, 500);
+}
     
     // =================================================================
     // 📂 SECTION 5: UI HELPER FUNCTIONS
