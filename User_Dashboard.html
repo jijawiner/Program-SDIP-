@@ -188,23 +188,38 @@
         <div class="content-subtitle">ภาพรวมงานของคุณ <?= userProfile.Name || userProfile['ชื่อ-สกุล'] ?></div>
     </div>
     
-    <!-- ⭐ ประกาศตัวแปรก่อน include Component -->
-    <script>
-        // ประกาศตัวแปรให้ DashboardComponent ใช้
-        var workData = <?!= JSON.stringify(userData) ?>;
-        var currentUser = {
-            username: '<?= userInfo.username ?>',
-            role: '<?= userInfo.role ?>',
-            token: localStorage.getItem('authToken')
-        };
-        
-        console.log('📊 [USER DASHBOARD] workData ถูกประกาศ:', workData);
-    </script>
+ <!-- ⭐ ประกาศตัวแปรก่อน include Component -->
+<script>
+    // ⭐ เพิ่ม Debug: ดู Raw JSON String ก่อน Parse
+    console.log('🔍 [DEBUG] Raw userData string:', '<?!= JSON.stringify(userData) ?>');
     
-    <!-- ตาราง My Work Overview -->
-    <div class="work-overview-container">
-        <?!= include('DashboardComponent'); ?>
-    </div>
+    // ตรวจสอบว่า userData ถูกส่งมาหรือไม่
+    var rawUserData = '<?!= JSON.stringify(userData) ?>';
+    console.log('📦 [DEBUG] Raw string length:', rawUserData.length);
+    
+    // ประกาศตัวแปรให้ DashboardComponent ใช้
+    var workData = <?!= JSON.stringify(userData) ?>;
+    var currentUser = {
+        username: '<?= userInfo.username ?>',
+        role: '<?= userInfo.role ?>',
+        token: localStorage.getItem('authToken')
+    };
+    
+    console.log('📊 [USER DASHBOARD] workData ถูกประกาศ:', workData);
+    console.log('👤 [USER DASHBOARD] currentUser:', currentUser);
+    
+    // ตรวจสอบว่า workData มีข้อมูลครบหรือไม่
+    if (!workData) {
+        console.error('❌ workData is null or undefined!');
+    } else {
+        console.log('✅ workData has data:', Object.keys(workData));
+    }
+</script>
+
+<!-- ตาราง My Work Overview -->
+<div class="work-overview-container">
+    <?!= include('DashboardComponent'); ?>
+</div>
 </div>
 
 <!-- ปิด container หลัก -->
