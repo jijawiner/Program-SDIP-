@@ -1145,22 +1145,40 @@ function detectSuspiciousActivity(username) {
 
 /**
  * โหลด Dashboard ตาม Role ของผู้ใช้
+ * 
+ * @param {string} username - Username ของผู้ใช้
+ * @param {string} role - Role ของผู้ใช้ (USER, POWERUSER, ADMIN)
+ * @param {string} token - Auth token (optional)
+ * @returns {string} HTML ของ Dashboard
  */
-function getDashboardHtmlWithUserData(userInfo) {
+function getDashboardHtmlWithUserData(username, role, token) {
   const functionName = 'getDashboardHtmlWithUserData';
   
   try {
+    // ตรวจสอบ parameters
+    console.log(`📊 [${functionName}] Parameters received:`);
+    console.log(`   - username: ${username}`);
+    console.log(`   - role: ${role}`);
+    console.log(`   - token: ${token || 'not provided'}`);
+    
+    // สร้าง userInfo object จาก parameters
+    const userInfo = {
+      username: username,
+      role: role,
+      token: token || ''
+    };
+    
     console.log(`📊 [${functionName}] โหลด Dashboard สำหรับ: ${userInfo.username} (${userInfo.role})`);
     
     // ตรวจสอบข้อมูลผู้ใช้
-    if (!userInfo || !userInfo.username || !userInfo.role) {
-      throw new Error('ข้อมูลผู้ใช้ไม่ครบถ้วน');
+    if (!userInfo.username || !userInfo.role) {
+      throw new Error('ข้อมูลผู้ใช้ไม่ครบถ้วน - ต้องมี username และ role');
     }
     
     // แยกหน้าตาม Role
-    const role = userInfo.role.toUpperCase();
+    const userRole = userInfo.role.toUpperCase();
     
-    switch(role) {
+    switch(userRole) {
       case 'USER':
         return getUserDashboardHtml(userInfo);
         
@@ -1176,6 +1194,7 @@ function getDashboardHtmlWithUserData(userInfo) {
     
   } catch (error) {
     console.error(`❌ [${functionName}] Error:`, error.toString());
+    console.error(`❌ [${functionName}] Stack:`, error.stack);
     return createErrorDashboard(error.toString());
   }
 }
@@ -1186,17 +1205,43 @@ function getDashboardHtmlWithUserData(userInfo) {
 function getUserDashboardHtml(userInfo) {
   console.log(`👤 [USER] โหลด Dashboard สำหรับ ${userInfo.username}`);
   
-  // ดึงข้อมูลของ User คนนี้
-  const userData = getUserWorkOverview(userInfo.username);
-  const userProfile = getUserPersonalData(userInfo.username);
-  
-  // สร้าง HTML
-  const template = HtmlService.createTemplateFromFile('User_Dashboard');
-  template.userInfo = userInfo;
-  template.userData = userData;
-  template.userProfile = userProfile;
-  
-  return template.evaluate().getContent();
+  try {
+    // ดึงข้อมูลของ User คนนี้
+    const userData = getUserWorkOverview(userInfo.username);
+    const userProfile = getUserPersonalData(userInfo.username);
+    
+    // Debug log
+    console.log(`📊 [USER] userData type: ${typeof userData}`);
+    console.log(`📊 [USER] userData is null?: ${userData === null}`);
+    console.log(`📊 [USER] userData is undefined?: ${userData === undefined}`);
+    console.log(`📊 [USER] userData:`, JSON.stringify(userData));
+    console.log(`👤 [USER] userProfile:`, JSON.stringify(userProfile));
+    
+    // สร้าง HTML Template
+    const template = HtmlService.createTemplateFromFile('User_Dashboard');
+    template.userInfo = userInfo;
+    template.userData = userData;
+    template.userProfile = userProfile;
+    
+    console.log('✅ [USER] กำลัง evaluate template...');
+    
+    // ⭐ สำคัญ: ต้อง evaluate และ getContent()
+    const htmlOutput = template.evaluate();
+    const htmlContent = htmlOutput.getContent();
+    
+    console.log('✅ [USER] Template ถูก evaluate แล้ว, HTML length:', htmlContent.length);
+    
+    // ⭐ Debug: แสดง HTML ส่วนแรก
+    console.log('📄 [USER] HTML Preview (first 500 chars):');
+    console.log(htmlContent.substring(0, 500));
+    
+    return htmlContent;
+    
+  } catch (error) {
+    console.error(`❌ [USER] Error: ${error.toString()}`);
+    console.error(`❌ [USER] Stack: ${error.stack}`);
+    throw error;
+  }
 }
 
 /**
@@ -1732,13 +1777,9 @@ function getUserWorkOverview(username) {
     console.log(`📊 [${functionName}] Return R:${returnedR.length} EMS:${returnedEMS.length} COD:${returnedCOD.length}`);
     
     // คำนวณสถิติ
-    const overview = {
-      sendMoney: {
-        r: 0,
-        ems: 0,
-        cod: countCOD(wmsData),
-        total: countCOD(wmsData)
-      },
+const sendMoneyStats = countNotSentMoney(wmsData);
+const overview = {
+  sendMoney: sendMoneyStats,
       prepare: calculateByType(wrpData),
       recorded: calculateRecorded(wrpData),
       backlog: {
@@ -1884,6 +1925,58 @@ function getDetailWorkData(dataType, workType, username) {
     };
   }
 }
+/**
+ * ดึงรายการที่ยังไม่ได้บันทึกจากชีต WRP
+ * สำหรับแสดงใน Tab "เตรียม + บันทึก"
+ */
+function getNotRecordedData(username) {
+  const functionName = 'getNotRecordedData';
+  
+  try {
+    console.log(`📋 [${functionName}] ดึงรายการที่ยังไม่บันทึกของ: ${username}`);
+    
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = spreadsheet.getSheetByName('SDIP WRP รายละเอียด');
+    
+    if (!sheet) {
+      throw new Error('ไม่พบชีต: SDIP WRP รายละเอียด');
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const notRecordedRows = [];
+    
+    // คอลัมน์ C (index 2) = ผู้ดำเนินการ
+    // คอลัมน์ F (index 5) = สถานะ
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const operator = (row[2] || '').toString().trim();
+      const status = (row[5] || '').toString().trim();
+      
+      // เช็คว่าเป็นของ user นี้ และยังไม่ได้บันทึก
+      if (operator === username && status === 'ไม่ได้บันทึกนำจ่าย') {
+        notRecordedRows.push(row);
+      }
+    }
+    
+    console.log(`✅ [${functionName}] พบ ${notRecordedRows.length} รายการที่ยังไม่บันทึก`);
+    
+    return {
+      status: 'success',
+      headers: headers,
+      data: notRecordedRows
+    };
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return {
+      status: 'error',
+      message: error.toString(),
+      headers: [],
+      data: []
+    };
+  }
+}
 
 // =================================================================
 // HELPER FUNCTIONS
@@ -1925,21 +2018,138 @@ function getDataFromSheet(spreadsheet, sheetName, username) {
   console.log(`   ✓ [${sheetName}] → ${result.length} รายการ (column ${operatorColumnIndex === 2 ? 'C' : 'D'})`);
   return result;
 }
+// =================================================================
+// 📂 CATEGORY RULES MANAGEMENT (ระบบจัดการกฎการแยกประเภท)
+// =================================================================
 
 /**
- * คำนวณสถิติแยกตาม R/EMS/COD
+ * อ่านกฎการจัดหมวดหมู่จากชีท "SDIP Category Rules"
+ * @returns {Object} { prefixMap: {...}, priorities: [...] }
+ */
+function loadCategoryRules() {
+  const functionName = 'loadCategoryRules';
+  const CACHE_KEY = 'CATEGORY_RULES';
+  const CACHE_TIME = 3600; // 1 ชั่วโมง
+  
+  try {
+    // เช็ค cache ก่อน (เพื่อ performance)
+    const cache = CacheService.getScriptCache();
+    const cachedRules = cache.get(CACHE_KEY);
+    
+    if (cachedRules) {
+      console.log(`✅ [${functionName}] ใช้ข้อมูลจาก Cache`);
+      return JSON.parse(cachedRules);
+    }
+    
+    // ไม่มี cache → อ่านจากชีท
+    console.log(`📊 [${functionName}] อ่านกฎจากชีท...`);
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('SDIP Category Rules');
+    
+    if (!sheet) {
+      console.warn(`⚠️ [${functionName}] ไม่พบชีต "SDIP Category Rules" - ใช้ค่า default`);
+      return getDefaultRules();
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const rules = {
+      prefixMap: {},      // { 'EA': 'COD', 'R': 'R', ... }
+      priorities: []      // ['EA', 'WA', 'WC', 'JA', 'R', 'B', ...] เรียงตาม length
+    };
+    
+    // ข้ามแถวแรก (header)
+    for (let i = 1; i < data.length; i++) {
+      const prefix = (data[i][0] || '').toString().trim().toUpperCase();
+      const category = (data[i][1] || '').toString().trim().toUpperCase();
+      
+      if (prefix && category) {
+        rules.prefixMap[prefix] = category;
+        rules.priorities.push(prefix);
+      }
+    }
+    
+    // เรียง priorities จากยาว → สั้น (เช็ค EA, WA ก่อน E, W)
+    rules.priorities.sort((a, b) => b.length - a.length);
+    
+    console.log(`✅ [${functionName}] โหลดกฎสำเร็จ: ${rules.priorities.length} กฎ`);
+    console.log(`📋 [${functionName}] Priorities:`, rules.priorities.join(', '));
+    
+    // บันทึกลง cache
+    cache.put(CACHE_KEY, JSON.stringify(rules), CACHE_TIME);
+    
+    return rules;
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return getDefaultRules();
+  }
+}
+
+/**
+ * กฎ default กรณีไม่มีชีท Category Rules
+ */
+function getDefaultRules() {
+  return {
+    prefixMap: {
+      // COD (เช็คก่อน - 2 ตัวอักษร)
+      'EA': 'COD', 'WA': 'COD', 'WC': 'COD', 'JA': 'COD',
+      // R
+      'R': 'R', 'B': 'R', 'O': 'R', 'C': 'R', 'V': 'R', 'P': 'R',
+      // EMS
+      'E': 'EMS', 'J': 'EMS', 'W': 'EMS', 'L': 'EMS'
+    },
+    priorities: ['EA', 'WA', 'WC', 'JA', 'R', 'B', 'O', 'C', 'V', 'P', 'E', 'J', 'W', 'L']
+  };
+}
+
+/**
+ * จัดหมวดหมู่จากหมายเลข (ใช้กฎจากชีท)
+ */
+function categorizeTrackingNumber(trackingNumber, rules) {
+  const number = (trackingNumber || '').toString().trim().toUpperCase();
+  
+  if (!number) return 'UNKNOWN';
+  
+  // ลองเช็คตาม priorities (ยาว → สั้น)
+  for (const prefix of rules.priorities) {
+    if (number.startsWith(prefix)) {
+      return rules.prefixMap[prefix];
+    }
+  }
+  
+  return 'UNKNOWN';
+}
+
+/**
+ * ล้าง cache กฎ (เรียกเมื่อมีการแก้ไขชีท Category Rules)
+ */
+function clearCategoryRulesCache() {
+  const cache = CacheService.getScriptCache();
+  cache.remove('CATEGORY_RULES');
+  console.log('✅ ล้าง Category Rules Cache สำเร็จ');
+  
+  // โหลดกฎใหม่ทันที
+  const rules = loadCategoryRules();
+  console.log('✅ โหลดกฎใหม่สำเร็จ:', rules.priorities.length, 'กฎ');
+  
+  return { status: 'success', message: 'ล้าง Cache และโหลดกฎใหม่สำเร็จ' };
+}
+/**
+ * คำนวณสถิติแยกตาม R/EMS/COD (ใช้กฎจากชีท)
  */
 function calculateByType(data) {
+  const rules = loadCategoryRules();
   const stats = { r: 0, ems: 0, cod: 0, total: 0 };
   
   data.forEach(row => {
-    const trackingNumber = (row[1] || '').toString().trim(); // index 1 = คอลัมน์ที่ 2
+    const trackingNumber = (row[1] || '').toString().trim();
+    const category = categorizeTrackingNumber(trackingNumber, rules);
     
-    if (trackingNumber.startsWith('R')) {
+    if (category === 'R') {
       stats.r++;
-    } else if (trackingNumber.startsWith('E')) {
+    } else if (category === 'EMS') {
       stats.ems++;
-    } else if (trackingNumber.startsWith('W') || trackingNumber.startsWith('J')) {
+    } else if (category === 'COD') {
       stats.cod++;
     }
   });
@@ -1949,27 +2159,27 @@ function calculateByType(data) {
 }
 
 /**
- * คำนวณข้อมูลที่บันทึกแล้ว
+ * คำนวณข้อมูลที่บันทึกแล้ว (ใช้กฎจากชีท)
  */
 function calculateRecorded(data) {
+  const rules = loadCategoryRules();
   const stats = { r: 0, ems: 0, cod: 0, total: 0 };
   
   data.forEach(row => {
     const trackingNumber = (row[1] || '').toString().trim();
     const status = (row[5] || '').toString().trim();
     
-    // เช็คว่ามีสถานะที่ไม่ใช่ค่าว่างและไม่ใช่ "ไม่ได้บันทึกนำจ่าย"
-    // สถานะที่บันทึกแล้วจะเป็น เช่น "สถานะ : (I) โทรศัพท์ติดต่อผู้รับไม่ได้"
-    const isRecorded = status && 
-                      status.includes('สถานะ :') && 
-                      status.length > 10; // มีข้อความมากกว่า "สถานะ :"
+    // บันทึกแล้ว = ไม่ใช่ "ไม่ได้บันทึกนำจ่าย"
+    const isRecorded = status !== 'ไม่ได้บันทึกนำจ่าย';
     
     if (isRecorded) {
-      if (trackingNumber.startsWith('R')) {
+      const category = categorizeTrackingNumber(trackingNumber, rules);
+      
+      if (category === 'R') {
         stats.r++;
-      } else if (trackingNumber.startsWith('E')) {
+      } else if (category === 'EMS') {
         stats.ems++;
-      } else if (trackingNumber.startsWith('W') || trackingNumber.startsWith('J')) {
+      } else if (category === 'COD') {
         stats.cod++;
       }
     }
@@ -1980,7 +2190,34 @@ function calculateRecorded(data) {
 }
 
 /**
- * นับจำนวน COD
+ * นับจำนวนที่ยังไม่ส่งเงิน (เช็คคอลัมน์ K = "ไม่พบการส่งเงิน")
+ * ⚠️ ชีต WMS = COD ทั้งหมด ไม่ต้องแยก R/EMS
+ */
+function countNotSentMoney(data) {
+  const stats = { r: 0, ems: 0, cod: 0, total: 0 };
+  
+  // นับจำนวนที่ยังไม่ส่งเงิน (คอลัมน์ K = "ไม่พบการส่งเงิน")
+  data.forEach(row => {
+    // คอลัมน์ K (index 10) = สถานะการส่งเงิน
+    const sendMoneyStatus = (row[10] || '').toString().trim();
+    
+    // เช็คว่ายังไม่ส่งเงิน
+    if (sendMoneyStatus === 'ไม่พบการส่งเงิน') {
+      stats.cod++; // นับเป็น COD ทั้งหมด
+    }
+  });
+  
+  // R และ EMS = 0 เสมอ เพราะ WMS เป็น COD ทั้งหมด
+  stats.r = 0;
+  stats.ems = 0;
+  stats.total = stats.cod;
+  
+  return stats;
+}
+
+/**
+ * ⚠️ เก็บไว้เพื่อ backward compatibility (ถ้ามีที่อื่นใช้)
+ * แต่แนะนำให้ใช้ countNotSentMoney แทน
  */
 function countCOD(data) {
   return data.filter(row => {
@@ -1990,19 +2227,22 @@ function countCOD(data) {
 }
 
 /**
- * ตรวจสอบว่า tracking number ตรงกับ workType หรือไม่
+ * ตรวจสอบว่า tracking number ตรงกับ workType หรือไม่ (ใช้กฎจากชีท)
  */
 function matchesWorkType(trackingNumber, workType) {
+  const rules = loadCategoryRules();
+  const category = categorizeTrackingNumber(trackingNumber, rules);
+  
   if (workType === 'R') {
-    return trackingNumber.startsWith('R');
+    return category === 'R';
   } else if (workType === 'EMS') {
-    return trackingNumber.startsWith('E');
+    return category === 'EMS';
   } else if (workType === 'COD') {
-    return trackingNumber.startsWith('W') || trackingNumber.startsWith('J');
+    return category === 'COD';
   }
+  
   return false;
 }
-
 /**
  * กำหนด CSS Class ตาม %
  */
@@ -2103,4 +2343,83 @@ function testGetUserWorkOverview() {
   
   Logger.log('=== ผลลัพธ์ ===');
   Logger.log(JSON.stringify(result, null, 2));
+}
+function getUserDashboardHtml(userInfo) {
+  console.log(`👤 [USER] โหลด Dashboard สำหรับ ${userInfo.username}`);
+  
+  try {
+    // ดึงข้อมูลของ User คนนี้
+    const userData = getUserWorkOverview(userInfo.username);
+    const userProfile = getUserPersonalData(userInfo.username);
+    
+    // ⭐ Debug: แสดงข้อมูลที่จะส่งไป
+    console.log(`📊 [USER] userData type: ${typeof userData}`);
+    console.log(`📊 [USER] userData is null?: ${userData === null}`);
+    console.log(`📊 [USER] userData is undefined?: ${userData === undefined}`);
+    console.log(`📊 [USER] userData:`, JSON.stringify(userData));
+    console.log(`👤 [USER] userProfile:`, JSON.stringify(userProfile));
+    
+    // ตรวจสอบว่าข้อมูลครบหรือไม่
+    if (!userData) {
+      throw new Error('userData is null or undefined');
+    }
+    
+    if (!userProfile) {
+      throw new Error('userProfile is null or undefined');
+    }
+    
+    // สร้าง HTML Template
+    const template = HtmlService.createTemplateFromFile('User_Dashboard');
+    template.userInfo = userInfo;
+    template.userData = userData;
+    template.userProfile = userProfile;
+    
+    console.log('✅ [USER] กำลัง evaluate template...');
+    
+    const output = template.evaluate().getContent();
+    
+    console.log('✅ [USER] Template ถูก evaluate แล้ว, HTML length:', output.length);
+    
+    return output;
+    
+  } catch (error) {
+    console.error(`❌ [USER] Error: ${error.toString()}`);
+    console.error(`❌ [USER] Stack: ${error.stack}`);
+    throw error;
+  }
+}
+function testSendMoney() {
+  const username = 'wibunluk.pi'; // หรือ username ที่มีข้อมูล
+  
+  console.log('🧪 ทดสอบการนับส่งเงิน...');
+  
+  const result = getUserWorkOverview(username);
+  
+  console.log('📊 ผลลัพธ์ sendMoney:', JSON.stringify(result.sendMoney));
+}
+function testCategoryRules() {
+  console.log('🧪 ทดสอบระบบกฎการแยกประเภท...');
+  
+  // โหลดกฎ
+  const rules = loadCategoryRules();
+  
+  console.log('📋 Priorities:', rules.priorities);
+  console.log('📊 Prefix Map:', rules.prefixMap);
+  
+  // ทดสอบแยกประเภท
+  const testNumbers = [
+    'R123456',
+    'EA123456',
+    'WA789012',
+    'E456789',
+    'W123456',
+    'C789012',
+    'L345678'
+  ];
+  
+  console.log('\n🔍 ผลการแยกประเภท:');
+  testNumbers.forEach(num => {
+    const category = categorizeTrackingNumber(num, rules);
+    console.log(`  ${num} → ${category}`);
+  });
 }
