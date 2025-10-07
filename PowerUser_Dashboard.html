@@ -511,46 +511,7 @@
                 <?!= include('DashboardComponent'); ?>
             `;
             
-            document.getElementById('drilldownContent').innerHTML = html;
             
-            // โหลดข้อมูล
-            if (typeof loadWorkData === 'function') {
-                loadWorkData(emp.workData);
-            }
-        }
-        
-        // ฟังก์ชันเพิ่มเติม
-        function goHome() {
-            closeDrilldown();
-        }
-        
-        function openP301() {
-            window.open('https://example.com/p301', '_blank');
-        }
-        
-        function openReport() {
-            window.open('https://example.com/report', '_blank');
-        }
-        
-        function openReturn() {
-            window.open('https://example.com/return', '_blank');
-        }
-        
-        function handleLogout() {
-            if (confirm('ออกจากระบบ?')) {
-                google.script.run
-                    .withSuccessHandler(() => {
-                        localStorage.clear();
-                        location.reload();
-                    })
-                    .logout(currentUser.token);
-            }
-        }
-        
-        // โหลดหน้า
-        document.addEventListener('DOMContentLoaded', () => {
-            loadTeamGrid();
-        });
     </script>
 </body>
 </html>
