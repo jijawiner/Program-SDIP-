@@ -1,3 +1,10 @@
+<!-- DashboardComponent.html - ฉบับสมบูรณ์ -->
+
+<!-- Debug Log แรก -->
+<script>
+    console.log('🎬 [COMPONENT] DashboardComponent.html เริ่มโหลด...');
+</script>
+
 <!-- ตาราง My Work Overview -->
 <div class="work-table-container">
     <table class="work-overview-table">
@@ -13,37 +20,37 @@
         </thead>
         <tbody>
             <tr>
-                <td class="work-type-label">R</td>
-                <td class="work-value">-</td>
-                <td class="work-value" id="prepare-r">-</td>
-                <td class="work-value" id="recorded-r">-</td>
-                <td class="work-value clickable" onclick="showTab('backlog', 'R')" id="backlog-r">-</td>
-                <td class="work-value clickable" onclick="showTab('return', 'R')" id="return-r">-</td>
-            </tr>
+               <td class="work-type-label">R</td>
+              <td class="work-value">-</td>
+              <td class="work-value clickable" onclick="showTab('prepare', 'R')" id="prepare-r">-</td>
+              <td class="work-value clickable" onclick="showTab('prepare', 'R')" id="recorded-r">-</td>
+              <td class="work-value clickable" onclick="showTab('backlog', 'R')" id="backlog-r">-</td>
+              <td class="work-value clickable" onclick="showTab('return', 'R')" id="return-r">-</td>
+          </tr>
             <tr>
-                <td class="work-type-label">EMS</td>
-                <td class="work-value">-</td>
-                <td class="work-value" id="prepare-ems">-</td>
-                <td class="work-value" id="recorded-ems">-</td>
-                <td class="work-value clickable" onclick="showTab('backlog', 'EMS')" id="backlog-ems">-</td>
-                <td class="work-value clickable" onclick="showTab('return', 'EMS')" id="return-ems">-</td>
-            </tr>
-            <tr>
-                <td class="work-type-label">COD</td>
-                <td class="work-value clickable" onclick="showTab('sendMoney', 'COD')" id="sendmoney-cod">-</td>
-                <td class="work-value" id="prepare-cod">-</td>
-                <td class="work-value" id="recorded-cod">-</td>
-                <td class="work-value clickable" onclick="showTab('backlog', 'COD')" id="backlog-cod">-</td>
-                <td class="work-value clickable" onclick="showTab('return', 'COD')" id="return-cod">-</td>
-            </tr>
+              <td class="work-type-label">EMS</td>
+              <td class="work-value">-</td>
+              <td class="work-value clickable" onclick="showTab('prepare', 'EMS')" id="prepare-ems">-</td>
+              <td class="work-value clickable" onclick="showTab('prepare', 'EMS')" id="recorded-ems">-</td>
+              <td class="work-value clickable" onclick="showTab('backlog', 'EMS')" id="backlog-ems">-</td>
+              <td class="work-value clickable" onclick="showTab('return', 'EMS')" id="return-ems">-</td>
+          </tr>
+           <tr>
+              <td class="work-type-label">COD</td>
+              <td class="work-value clickable" onclick="showTab('sendMoney', 'COD')" id="sendmoney-cod">-</td>
+              <td class="work-value clickable" onclick="showTab('prepare', 'COD')" id="prepare-cod">-</td>
+              <td class="work-value clickable" onclick="showTab('prepare', 'COD')" id="recorded-cod">-</td>
+              <td class="work-value clickable" onclick="showTab('backlog', 'COD')" id="backlog-cod">-</td>
+              <td class="work-value clickable" onclick="showTab('return', 'COD')" id="return-cod">-</td>
+          </tr>
             <tr class="total-row">
-                <td class="work-type-label">📦 รวม</td>
-                <td class="work-total" id="total-sendmoney">-</td>
-                <td class="work-total" id="total-prepare">-</td>
-                <td class="work-total" id="total-recorded">-</td>
-                <td class="work-total" id="total-backlog">-</td>
-                <td class="work-total" id="total-return">-</td>
-            </tr>
+              <td class="work-type-label">📦 รวม</td>
+              <td class="work-total" id="total-sendmoney">-</td>
+              <td class="work-total clickable" onclick="showTab('prepare', 'ALL')" id="total-prepare">-</td>
+              <td class="work-total clickable" onclick="showTab('prepare', 'ALL')" id="total-recorded">-</td>
+              <td class="work-total clickable" onclick="showTab('backlog', 'ALL')" id="total-backlog">-</td>
+              <td class="work-total clickable" onclick="showTab('return', 'ALL')" id="total-return">-</td>
+          </tr>
         </tbody>
     </table>
 </div>
@@ -51,24 +58,25 @@
 <!-- 4 Tabs -->
 <div id="tabsContainer" style="display: none; margin-top: 30px;">
     <div class="tabs-header">
-        <div class="tab" data-tab="sendMoney" onclick="switchTab('sendMoney')">ส่งเงิน</div>
+        <div class="tab active" data-tab="sendMoney" onclick="switchTab('sendMoney')">ส่งเงิน</div>
         <div class="tab" data-tab="prepare" onclick="switchTab('prepare')">เตรียม + บันทึก</div>
         <div class="tab" data-tab="backlog" onclick="switchTab('backlog')">งานค้าง</div>
         <div class="tab" data-tab="return" onclick="switchTab('return')">ต้องส่งคืน</div>
     </div>
     
     <div class="tabs-content">
-        <!-- Tab Content จะถูกโหลดที่นี่ -->
         <div id="tabContent"></div>
     </div>
 </div>
 
+<!-- CSS -->
 <style>
     .work-table-container {
         background: white;
         border-radius: 12px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         overflow: hidden;
+        margin-bottom: 20px;
     }
     
     .work-overview-table {
@@ -163,94 +171,291 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         min-height: 400px;
     }
-</style>
-
-<script>
-    // โหลดข้อมูลลงตาราง
-    function loadWorkData(data) {
-        console.log('🔄 [loadWorkData] กำลังโหลดข้อมูล...', data);
-        
-        // ส่งเงิน
-        document.getElementById('sendmoney-cod').textContent = data.sendMoney.cod || 0;
-        document.getElementById('total-sendmoney').textContent = data.sendMoney.total || 0;
-        
-        // เตรียม
-        document.getElementById('prepare-r').textContent = data.prepare.r || 0;
-        document.getElementById('prepare-ems').textContent = data.prepare.ems || 0;
-        document.getElementById('prepare-cod').textContent = data.prepare.cod || 0;
-        document.getElementById('total-prepare').textContent = data.prepare.total || 0;
-        
-        // บันทึก
-        document.getElementById('recorded-r').textContent = data.recorded.r || 0;
-        document.getElementById('recorded-ems').textContent = data.recorded.ems || 0;
-        document.getElementById('recorded-cod').textContent = data.recorded.cod || 0;
-        document.getElementById('total-recorded').textContent = data.recorded.total || 0;
-        
-        // งานค้าง
-        document.getElementById('backlog-r').textContent = data.backlog.r || 0;
-        document.getElementById('backlog-ems').textContent = data.backlog.ems || 0;
-        document.getElementById('backlog-cod').textContent = data.backlog.cod || 0;
-        document.getElementById('total-backlog').textContent = data.backlog.total || 0;
-        
-        // ต้องส่งคืน
-        document.getElementById('return-r').textContent = data.returned.r || 0;
-        document.getElementById('return-ems').textContent = data.returned.ems || 0;
-        document.getElementById('return-cod').textContent = data.returned.cod || 0;
-        document.getElementById('total-return').textContent = data.returned.total || 0;
-        
-        console.log('✅ [loadWorkData] โหลดข้อมูลสำเร็จ');
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
     }
     
-    // ⭐ Auto-load เมื่อมีข้อมูล
-    (function() {
-        console.log('🔍 [DashboardComponent] กำลังตรวจสอบข้อมูล...');
-        
-        // รอ DOM โหลดเสร็จ
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                tryLoadData();
-            });
-        } else {
-            tryLoadData();
-        }
-        
-        function tryLoadData() {
-            if (typeof workData !== 'undefined' && workData) {
-                console.log('✅ [DashboardComponent] พบข้อมูล workData');
-                loadWorkData(workData);
-            } else {
-                console.warn('⚠️ [DashboardComponent] ไม่พบข้อมูล workData');
-            }
-        }
-    })();
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #d32f2f;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
     
-    // แสดง Tab
-    function showTab(tabType, workType) {
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .stats-grid {
+        display: flex;
+        justify-content: space-around;
+        gap: 15px;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        border-left: 4px solid #ddd;
+        min-width: 100px;
+        flex: 1;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card.clickable {
+        cursor: pointer;
+    }
+    
+    .stat-card.total { border-left-color: #37474f; }
+    .stat-card.r-type { border-left-color: #d32f2f; }
+    .stat-card.ems-type { border-left-color: #1976d2; }
+    .stat-card.cod-type { border-left-color: #ff9800; }
+    
+    .stat-number {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        line-height: 1;
+    }
+    
+    .stat-number.r-color { color: #d32f2f; }
+    .stat-number.ems-color { color: #1976d2; }
+    .stat-number.cod-color { color: #ff9800; }
+    .stat-number.total-color { color: #37474f; }
+    
+    .stat-label {
+        color: #666;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .chart-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-title {
+        text-align: center;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #37474f;
+    }
+    
+    .detail-table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin: 20px 0;
+        overflow: hidden;
+    }
+    
+    .detail-table-header {
+        background: #37474f;
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .detail-table-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .close-btn {
+        background: #f44336;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.3s ease;
+    }
+    
+    .close-btn:hover {
+        background: #d32f2f;
+    }
+    
+    .detail-table-wrapper {
+        max-height: 500px;
+        overflow: auto;
+    }
+    
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    
+    .detail-table thead {
+        position: sticky;
+        top: 0;
+        background: #f8f9fa;
+        z-index: 10;
+    }
+    
+    .detail-table th {
+        padding: 12px 10px;
+        text-align: left;
+        font-weight: 600;
+        border: 1px solid #ddd;
+        background: #f8f9fa;
+    }
+    
+    .detail-table td {
+        padding: 10px;
+        border: 1px solid #eee;
+    }
+    
+    .detail-table tbody tr:hover {
+        background: #f5f5f5;
+    }
+    
+    .detail-table tbody tr:nth-child(even) {
+        background: #fafafa;
+    }
+    
+    .error {
+        background: #ffebee;
+        color: #c62828;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        border-left: 4px solid #c62828;
+    }
+</style>
+
+<!-- Main Script -->
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script>
+    console.log('📝 [COMPONENT] เริ่ม define ฟังก์ชันทั้งหมด...');
+    
+    // ตัวแปร Global
+    let currentTab = null;
+    
+    // =================================================================
+    // ฟังก์ชันหลัก: โหลดข้อมูลลงตาราง
+    // =================================================================
+    
+    window.loadWorkData = function(data) {
+        console.log('🔄 [loadWorkData] เริ่มโหลดข้อมูล...', data);
+        
+        if (!data) {
+            console.error('❌ [loadWorkData] ไม่มีข้อมูล!');
+            return;
+        }
+        
+        try {
+            // ส่งเงิน
+            document.getElementById('sendmoney-cod').textContent = data.sendMoney?.cod || 0;
+            document.getElementById('total-sendmoney').textContent = data.sendMoney?.total || 0;
+            
+            // เตรียม
+            document.getElementById('prepare-r').textContent = data.prepare?.r || 0;
+            document.getElementById('prepare-ems').textContent = data.prepare?.ems || 0;
+            document.getElementById('prepare-cod').textContent = data.prepare?.cod || 0;
+            document.getElementById('total-prepare').textContent = data.prepare?.total || 0;
+            
+            // บันทึก
+            document.getElementById('recorded-r').textContent = data.recorded?.r || 0;
+            document.getElementById('recorded-ems').textContent = data.recorded?.ems || 0;
+            document.getElementById('recorded-cod').textContent = data.recorded?.cod || 0;
+            document.getElementById('total-recorded').textContent = data.recorded?.total || 0;
+            
+            // งานค้าง
+            document.getElementById('backlog-r').textContent = data.backlog?.r || 0;
+            document.getElementById('backlog-ems').textContent = data.backlog?.ems || 0;
+            document.getElementById('backlog-cod').textContent = data.backlog?.cod || 0;
+            document.getElementById('total-backlog').textContent = data.backlog?.total || 0;
+            
+            // ต้องส่งคืน
+            document.getElementById('return-r').textContent = data.returned?.r || 0;
+            document.getElementById('return-ems').textContent = data.returned?.ems || 0;
+            document.getElementById('return-cod').textContent = data.returned?.cod || 0;
+            document.getElementById('total-return').textContent = data.returned?.total || 0;
+            
+            console.log('✅ [loadWorkData] โหลดข้อมูลสำเร็จ');
+        } catch (error) {
+            console.error('❌ [loadWorkData] Error:', error);
+        }
+    };
+    
+    // =================================================================
+    // ฟังก์ชัน Tab System
+    // =================================================================
+    
+    window.showTab = function(tabType, workType) {
+        console.log(`🔖 [showTab] เปิด Tab: ${tabType}, WorkType: ${workType}`);
+        
         document.getElementById('tabsContainer').style.display = 'block';
         switchTab(tabType);
         
         // Scroll ไปที่ Tab
-        document.getElementById('tabsContainer').scrollIntoView({ behavior: 'smooth' });
-    }
+        setTimeout(() => {
+            document.getElementById('tabsContainer').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    };
     
-    // สลับ Tab
-    let currentTab = null;
-    
-    function switchTab(tabName) {
+    window.switchTab = function(tabName) {
+        console.log(`🔄 [switchTab] สลับไป Tab: ${tabName}`);
+        
         // Update Tab Active
         document.querySelectorAll('.tab').forEach(tab => {
             tab.classList.remove('active');
         });
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        
+        const targetTab = document.querySelector(`[data-tab="${tabName}"]`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
         
         currentTab = tabName;
         loadTabContent(tabName);
-    }
+    };
     
-    // โหลดเนื้อหา Tab
-    function loadTabContent(tabName) {
+    window.loadTabContent = function(tabName) {
+        console.log(`📊 [loadTabContent] โหลดเนื้อหา Tab: ${tabName}`);
+        
         const container = document.getElementById('tabContent');
+        if (!container) {
+            console.error('❌ [loadTabContent] ไม่พบ tabContent container');
+            return;
+        }
+        
         container.innerHTML = '<div class="loading"><div class="spinner"></div><p>กำลังโหลดข้อมูล...</p></div>';
+        
+        // ตรวจสอบว่ามี workData หรือไม่
+        if (typeof workData === 'undefined') {
+            container.innerHTML = '<div class="error">ไม่พบข้อมูล workData</div>';
+            return;
+        }
         
         // ดึงข้อมูลตาม Tab
         let data;
@@ -260,8 +465,10 @@
                 break;
             case 'prepare':
                 data = {
-                    prepare: workData.prepare,
-                    recorded: workData.recorded
+                    total: workData.prepare.total,
+                    r: workData.prepare.r,
+                    ems: workData.prepare.ems,
+                    cod: workData.prepare.cod
                 };
                 break;
             case 'backlog':
@@ -270,119 +477,294 @@
             case 'return':
                 data = workData.returned;
                 break;
+            default:
+                data = { r: 0, ems: 0, cod: 0, total: 0 };
         }
         
         displayTabContent(tabName, data);
-    }
+    };
     
-    // แสดงเนื้อหา Tab
-    function displayTabContent(tabName, data) {
-        const container = document.getElementById('tabContent');
+ // แสดงเนื้อหา Tab
+function displayTabContent(tabName, data) {
+    const container = document.getElementById('tabContent');
+    
+    // ⭐ กรณีพิเศษ: Tab "เตรียม + บันทึก"
+    if (tabName === 'prepare') {
+        // แสดงสถิติเตรียม vs บันทึก
+        const prepare = data.prepare || { r: 0, ems: 0, cod: 0, total: 0 };
+        const recorded = data.recorded || { r: 0, ems: 0, cod: 0, total: 0 };
+        const notRecorded = {
+            r: prepare.r - recorded.r,
+            ems: prepare.ems - recorded.ems,
+            cod: prepare.cod - recorded.cod,
+            total: prepare.total - recorded.total
+        };
         
         const html = `
             <div class="stats-grid">
                 <div class="stat-card total">
-                    <div class="stat-number total-color">${data.total || 0}</div>
-                    <div class="stat-label">รวมทั้งหมด</div>
+                    <div class="stat-number total-color">${notRecorded.total || 0}</div>
+                    <div class="stat-label">ยังไม่บันทึก</div>
                 </div>
-                <div class="stat-card r-type clickable" onclick="showDetailTable('${tabName}', 'R')">
-                    <div class="stat-number r-color">${data.r || 0}</div>
+                <div class="stat-card r-type clickable" onclick="showDetailTable('prepare', 'R')">
+                    <div class="stat-number r-color">${notRecorded.r || 0}</div>
                     <div class="stat-label">R</div>
                 </div>
-                <div class="stat-card ems-type clickable" onclick="showDetailTable('${tabName}', 'EMS')">
-                    <div class="stat-number ems-color">${data.ems || 0}</div>
+                <div class="stat-card ems-type clickable" onclick="showDetailTable('prepare', 'EMS')">
+                    <div class="stat-number ems-color">${notRecorded.ems || 0}</div>
                     <div class="stat-label">EMS</div>
                 </div>
-                <div class="stat-card cod-type clickable" onclick="showDetailTable('${tabName}', 'COD')">
-                    <div class="stat-number cod-color">${data.cod || 0}</div>
+                <div class="stat-card cod-type clickable" onclick="showDetailTable('prepare', 'COD')">
+                    <div class="stat-number cod-color">${notRecorded.cod || 0}</div>
                     <div class="stat-label">COD</div>
                 </div>
             </div>
             
+            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h3 style="margin-top: 0;">📊 สรุปสถิติ</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #e9ecef;">
+                            <th style="padding: 10px; text-align: left;">ประเภท</th>
+                            <th style="padding: 10px; text-align: center;">เตรียม</th>
+                            <th style="padding: 10px; text-align: center;">บันทึกแล้ว</th>
+                            <th style="padding: 10px; text-align: center;">ยังไม่บันทึก</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 10px;">R</td>
+                            <td style="padding: 10px; text-align: center;">${prepare.r}</td>
+                            <td style="padding: 10px; text-align: center;">${recorded.r}</td>
+                            <td style="padding: 10px; text-align: center; color: #d32f2f; font-weight: bold;">${notRecorded.r}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px;">EMS</td>
+                            <td style="padding: 10px; text-align: center;">${prepare.ems}</td>
+                            <td style="padding: 10px; text-align: center;">${recorded.ems}</td>
+                            <td style="padding: 10px; text-align: center; color: #d32f2f; font-weight: bold;">${notRecorded.ems}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px;">COD</td>
+                            <td style="padding: 10px; text-align: center;">${prepare.cod}</td>
+                            <td style="padding: 10px; text-align: center;">${recorded.cod}</td>
+                            <td style="padding: 10px; text-align: center; color: #d32f2f; font-weight: bold;">${notRecorded.cod}</td>
+                        </tr>
+                        <tr style="background: #f8f9fa; font-weight: bold;">
+                            <td style="padding: 10px;">รวม</td>
+                            <td style="padding: 10px; text-align: center;">${prepare.total}</td>
+                            <td style="padding: 10px; text-align: center;">${recorded.total}</td>
+                            <td style="padding: 10px; text-align: center; color: #d32f2f;">${notRecorded.total}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
             <div class="chart-container">
-                <div class="chart-title">กราฟสัดส่วนประเภทงาน</div>
+                <div class="chart-title">กราฟสัดส่วนงานที่ยังไม่บันทึก</div>
                 <div id="pieChart" style="height: 300px;"></div>
             </div>
             
             <div style="text-align: center; margin-top: 20px; color: #666;">
-                <p>💡 คลิกที่ตัวเลข R, EMS หรือ COD เพื่อดูรายละเอียด</p>
+                <p>💡 คลิกที่ตัวเลข R, EMS หรือ COD เพื่อดูรายละเอียดที่ยังไม่บันทึก</p>
             </div>
         `;
         
         container.innerHTML = html;
         
         // วาดกราฟ
-        drawPieChart('pieChart', [
-            ['R', data.r || 0],
-            ['EMS', data.ems || 0],
-            ['COD', data.cod || 0]
-        ]);
+        if (notRecorded.total > 0) {
+            drawPieChart('pieChart', [
+                ['R', notRecorded.r || 0],
+                ['EMS', notRecorded.ems || 0],
+                ['COD', notRecorded.cod || 0]
+            ]);
+        } else {
+            document.getElementById('pieChart').innerHTML = 
+                '<div style="text-align: center; padding: 40px; color: #4caf50; font-size: 18px;">🎉 บันทึกครบทุกรายการแล้ว!</div>';
+        }
+        
+        return;
     }
     
-    // แสดงตารางรายละเอียด
-    function showDetailTable(tabType, workType) {
-        const container = document.getElementById('tabContent');
-        container.innerHTML = '<div class="loading"><div class="spinner"></div><p>กำลังโหลดรายละเอียด...</p></div>';
+    // กรณีปกติ: Tab อื่นๆ (sendMoney, backlog, return)
+    const html = `
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-number total-color">${data.total || 0}</div>
+                <div class="stat-label">รวมทั้งหมด</div>
+            </div>
+            <div class="stat-card r-type clickable" onclick="showDetailTable('${tabName}', 'R')">
+                <div class="stat-number r-color">${data.r || 0}</div>
+                <div class="stat-label">R</div>
+            </div>
+            <div class="stat-card ems-type clickable" onclick="showDetailTable('${tabName}', 'EMS')">
+                <div class="stat-number ems-color">${data.ems || 0}</div>
+                <div class="stat-label">EMS</div>
+            </div>
+            <div class="stat-card cod-type clickable" onclick="showDetailTable('${tabName}', 'COD')">
+                <div class="stat-number cod-color">${data.cod || 0}</div>
+                <div class="stat-label">COD</div>
+            </div>
+        </div>
         
-        const dataType = tabType === 'backlog' ? 'backlog' : 'return';
+        <div class="chart-container">
+            <div class="chart-title">กราฟสัดส่วนประเภทงาน</div>
+            <div id="pieChart" style="height: 300px;"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; color: #666;">
+            <p>💡 คลิกที่ตัวเลข R, EMS หรือ COD เพื่อดูรายละเอียด</p>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    // วาดกราฟ
+    drawPieChart('pieChart', [
+        ['R', data.r || 0],
+        ['EMS', data.ems || 0],
+        ['COD', data.cod || 0]
+    ]);
+}
+    // =================================================================
+    // ฟังก์ชันแสดงตารางรายละเอียด
+    // =================================================================
+// แสดงตารางรายละเอียด
+function showDetailTable(tabType, workType) {
+    const container = document.getElementById('tabContent');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div><p>กำลังโหลดรายละเอียด...</p></div>';
+    
+    // ⭐ กรณีพิเศษ: Tab "เตรียม + บันทึก" ให้แสดงรายการที่ยังไม่บันทึก
+    if (tabType === 'prepare') {
+        console.log('📋 [showDetailTable] กำลังดึงรายการที่ยังไม่บันทึก...');
         
         google.script.run
-            .withSuccessHandler(displayDetailTable)
-            .withFailureHandler(error => {
-                container.innerHTML = `<div class="error">เกิดข้อผิดพลาด: ${error.message}</div>`;
+            .withSuccessHandler((result) => {
+                if (result.status === 'success') {
+                    displayDetailTable(result.headers, result.data, 'รายการที่ยังไม่ได้บันทึก');
+                } else {
+                    container.innerHTML = `<div class="error-message">❌ เกิดข้อผิดพลาด: ${result.message}</div>`;
+                }
             })
-            .getDetailWorkData(dataType, workType, currentUser.username);
+            .withFailureHandler((error) => {
+                container.innerHTML = `<div class="error-message">❌ Error: ${error.message}</div>`;
+            })
+            .getNotRecordedData(currentUser.username);
+        
+        return;
     }
     
-    // แสดงตารางรายละเอียด
-    function displayDetailTable(result) {
-        const container = document.getElementById('tabContent');
+    // กรณีปกติ: Tab อื่นๆ (backlog, return, sendMoney)
+    const dataType = tabType === 'backlog' ? 'backlog' : 
+                     tabType === 'return' ? 'return' : 'sendMoney';
+    
+    console.log(`📋 [showDetailTable] Type: ${dataType}, WorkType: ${workType}`);
+    
+    google.script.run
+        .withSuccessHandler((result) => {
+            if (result.status === 'success') {
+                displayDetailTable(result.headers, result.data, `${workType} - ${getTabName(tabType)}`);
+            } else {
+                container.innerHTML = `<div class="error-message">❌ เกิดข้อผิดพลาด: ${result.message}</div>`;
+            }
+        })
+        .withFailureHandler((error) => {
+            container.innerHTML = `<div class="error-message">❌ Error: ${error.message}</div>`;
+        })
+        .getDetailWorkData(dataType, workType, currentUser.username);
+}
+
+// Helper: แปลงชื่อ Tab
+function getTabName(tabType) {
+    const names = {
+        'sendMoney': 'ส่งเงิน',
+        'prepare': 'เตรียม + บันทึก',
+        'backlog': 'งานค้าง',
+        'return': 'ต้องส่งคืน'
+    };
+    return names[tabType] || tabType;
+}
+    // =================================================================
+    // ฟังก์ชันวาดกราฟ
+    // =================================================================
+    
+    window.drawPieChart = function(containerId, data) {
+        console.log(`📊 [drawPieChart] วาดกราฟใน: ${containerId}`, data);
         
-        if (!result.data || result.data.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">ไม่มีข้อมูล</div>';
+        // ตรวจสอบว่ามีข้อมูลหรือไม่
+        const hasData = data.some(item => item[1] > 0);
+        
+        if (!hasData) {
+            document.getElementById(containerId).innerHTML = 
+                '<div style="text-align: center; padding: 60px; color: #999;">ไม่มีข้อมูลสำหรับแสดงกราฟ</div>';
             return;
         }
         
-        const headerHtml = result.headers.map(h => `<th>${h}</th>`).join('');
-        const rowsHtml = result.data.map(row => {
-            const cellsHtml = row.map(cell => `<td>${cell || '-'}</td>`).join('');
-            return `<tr>${cellsHtml}</tr>`;
-        }).join('');
-        
-        container.innerHTML = `
-            <div class="detail-table-container">
-                <div class="detail-table-header">
-                    <div class="detail-table-title">รายละเอียดทั้งหมด (${result.data.length} รายการ)</div>
-                    <button class="close-btn" onclick="loadTabContent(currentTab)">ปิด</button>
-                </div>
-                <div class="detail-table-wrapper">
-                    <table class="detail-table">
-                        <thead><tr>${headerHtml}</tr></thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-    
-    // วาดกราฟวงกลม
-    function drawPieChart(containerId, data) {
         google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(() => {
-            const chartData = google.visualization.arrayToDataTable([
-                ['Type', 'Count'],
-                ...data
-            ]);
-            
-            const options = {
-                pieHole: 0.4,
-                colors: ['#d32f2f', '#1976d2', '#f57c00'],
-                legend: { position: 'bottom' },
-                backgroundColor: 'transparent'
-            };
-            
-            const chart = new google.visualization.PieChart(document.getElementById(containerId));
-            chart.draw(chartData, options);
+        google.charts.setOnLoadCallback(function() {
+            try {
+                const chartData = google.visualization.arrayToDataTable([
+                    ['Type', 'Count'],
+                    ...data
+                ]);
+                
+                const options = {
+                    pieHole: 0.4,
+                    colors: ['#d32f2f', '#1976d2', '#ff9800'],
+                    legend: { position: 'bottom' },
+                    backgroundColor: 'transparent',
+                    chartArea: { width: '90%', height: '80%' }
+                };
+                
+                const chart = new google.visualization.PieChart(
+                    document.getElementById(containerId)
+                );
+                
+                chart.draw(chartData, options);
+                console.log('✅ [drawPieChart] วาดกราฟสำเร็จ');
+            } catch (error) {
+                console.error('❌ [drawPieChart] Error:', error);
+            }
         });
-    }
+    };
+    
+    // =================================================================
+    // Auto-Load เมื่อมีข้อมูล
+    // =================================================================
+    
+    console.log('✅ [COMPONENT] ฟังก์ชันทั้งหมดถูก define แล้ว');
+    
+    // รอ DOM โหลดเสร็จ
+    (function() {
+        const initComponent = function() {
+            console.log('🔍 [COMPONENT] ตรวจสอบข้อมูล...');
+            console.log('   - workData:', typeof workData !== 'undefined' ? 'มี' : 'ไม่มี');
+            console.log('   - currentUser:', typeof currentUser !== 'undefined' ? 'มี' : 'ไม่มี');
+            
+            if (typeof workData !== 'undefined' && workData) {
+                console.log('✅ [COMPONENT] พบ workData, เริ่มโหลดข้อมูล...');
+                loadWorkData(workData);
+            } else {
+                console.warn('⚠️ [COMPONENT] ยังไม่พบ workData, รอ 500ms...');
+                
+                setTimeout(() => {
+                    if (typeof workData !== 'undefined' && workData) {
+                        console.log('✅ [COMPONENT] พบ workData แล้ว, เริ่มโหลดข้อมูล...');
+                        loadWorkData(workData);
+                    } else {
+                        console.error('❌ [COMPONENT] ไม่พบ workData หลังรอ 500ms');
+                    }
+                }, 500);
+            }
+        };
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initComponent);
+        } else {
+            initComponent();
+        }
+    })();
+    
+    console.log('🎉 [COMPONENT] DashboardComponent.html โหลดเสร็จสมบูรณ์');
 </script>
