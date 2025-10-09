@@ -2423,3 +2423,54 @@ function testCategoryRules() {
     console.log(`  ${num} → ${category}`);
   });
 }
+/**
+ * ดึงรายการที่ยังไม่ได้บันทึกจากชีต WRP
+ */
+function getNotRecordedData(username) {
+  const functionName = 'getNotRecordedData';
+  
+  try {
+    console.log(`📋 [${functionName}] ดึงรายการที่ยังไม่บันทึกของ: ${username}`);
+    
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = spreadsheet.getSheetByName('SDIP WRP รายละเอียด');
+    
+    if (!sheet) {
+      throw new Error('ไม่พบชีต: SDIP WRP รายละเอียด');
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const notRecordedRows = [];
+    
+    // คอลัมน์ C (index 2) = ผู้ดำเนินการ
+    // คอลัมน์ F (index 5) = สถานะ
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const operator = (row[2] || '').toString().trim();
+      const status = (row[5] || '').toString().trim();
+      
+      // เช็คว่าเป็นของ user นี้ และยังไม่ได้บันทึก
+      if (operator === username && status === 'ไม่ได้บันทึกนำจ่าย') {
+        notRecordedRows.push(row);
+      }
+    }
+    
+    console.log(`✅ [${functionName}] พบ ${notRecordedRows.length} รายการที่ยังไม่บันทึก`);
+    
+    return {
+      status: 'success',
+      headers: headers,
+      data: notRecordedRows
+    };
+    
+  } catch (error) {
+    console.error(`❌ [${functionName}] Error:`, error.toString());
+    return {
+      status: 'error',
+      message: error.toString(),
+      headers: [],
+      data: []
+    };
+  }
+}
