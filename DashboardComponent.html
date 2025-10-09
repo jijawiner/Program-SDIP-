@@ -441,48 +441,51 @@
     };
     
     window.loadTabContent = function(tabName) {
-        console.log(`📊 [loadTabContent] โหลดเนื้อหา Tab: ${tabName}`);
-        
-        const container = document.getElementById('tabContent');
-        if (!container) {
-            console.error('❌ [loadTabContent] ไม่พบ tabContent container');
-            return;
-        }
-        
-        container.innerHTML = '<div class="loading"><div class="spinner"></div><p>กำลังโหลดข้อมูล...</p></div>';
-        
-        // ตรวจสอบว่ามี workData หรือไม่
-        if (typeof workData === 'undefined') {
-            container.innerHTML = '<div class="error">ไม่พบข้อมูล workData</div>';
-            return;
-        }
-        
-        // ดึงข้อมูลตาม Tab
-        let data;
-        switch(tabName) {
-            case 'sendMoney':
-                data = workData.sendMoney;
-                break;
-            case 'prepare':
-                data = {
-                    total: workData.prepare.total,
-                    r: workData.prepare.r,
-                    ems: workData.prepare.ems,
-                    cod: workData.prepare.cod
-                };
-                break;
-            case 'backlog':
-                data = workData.backlog;
-                break;
-            case 'return':
-                data = workData.returned;
-                break;
-            default:
-                data = { r: 0, ems: 0, cod: 0, total: 0 };
-        }
-        
-        displayTabContent(tabName, data);
-    };
+    console.log(`📊 [loadTabContent] โหลดเนื้อหา Tab: ${tabName}`);
+    
+    const container = document.getElementById('tabContent');
+    if (!container) {
+        console.error('❌ [loadTabContent] ไม่พบ tabContent container');
+        return;
+    }
+    
+    container.innerHTML = '<div class="loading"><div class="spinner"></div><p>กำลังโหลดข้อมูล...</p></div>';
+    
+    // ตรวจสอบว่ามี workData หรือไม่
+    if (typeof workData === 'undefined') {
+        container.innerHTML = '<div class="error">ไม่พบข้อมูล workData</div>';
+        return;
+    }
+    
+    // ดึงข้อมูลตาม Tab
+    let data;
+    switch(tabName) {
+        case 'sendMoney':
+            data = workData.sendMoney;
+            break;
+            
+        case 'prepare':
+            // ⭐ แก้ไข: ส่งทั้ง prepare และ recorded
+            data = {
+                prepare: workData.prepare || { r: 0, ems: 0, cod: 0, total: 0 },
+                recorded: workData.recorded || { r: 0, ems: 0, cod: 0, total: 0 }
+            };
+            break;
+            
+        case 'backlog':
+            data = workData.backlog;
+            break;
+            
+        case 'return':
+            data = workData.returned;
+            break;
+            
+        default:
+            data = { r: 0, ems: 0, cod: 0, total: 0 };
+    }
+    
+    displayTabContent(tabName, data);
+};
     
  // แสดงเนื้อหา Tab
 function displayTabContent(tabName, data) {
@@ -765,6 +768,340 @@ function getTabName(tabType) {
             initComponent();
         }
     })();
+    function displayDetailTable(headers, data, title) {
+    const container = document.getElementById('tabContent');
     
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #999;">
+                ไม่มีข้อมูล${title}
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="detail-table-container">
+            <div class="detail-table-header">
+                <div class="detail-table-title">${title} (${data.length} รายการ)</div>
+                <button class="close-btn" onclick="loadTabContent(currentTab)">✕ ปิด</button>
+            </div>
+            <div class="detail-table-wrapper">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            ${headers.map(h => `<th>${h}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(row => `
+                            <tr>
+                                ${row.map(cell => `<td>${cell || '-'}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+    /**
+ * ⭐ ฟังก์ชันแสดงตารางรายละเอียด (รองรับ Horizontal Scroll)
+ * 
+ * @param {Array} headers - หัวตาราง เช่น ['วันที่', 'บาร์โค้ด', 'ผู้ดำเนินการ', ...]
+ * @param {Array} data - ข้อมูล 2D Array เช่น [['2025-01-10', 'R123456', 'john'], ...]
+ * @param {string} title - หัวข้อตาราง เช่น "R - งานค้าง"
+ */
+window.displayDetailTable = function(headers, data, title) {
+    console.log(`📊 [displayDetailTable] แสดงตาราง: ${title}`);
+    console.log(`📊 [displayDetailTable] จำนวนคอลัมน์: ${headers.length}`);
+    console.log(`📊 [displayDetailTable] จำนวนแถว: ${data.length}`);
+    
+    const container = document.getElementById('tabContent');
+    
+    // กรณีไม่มีข้อมูล
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div style="
+                text-align: center;
+                padding: 60px 20px;
+                background: #f8f9fa;
+                border-radius: 12px;
+                border: 2px dashed #ddd;
+            ">
+                <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
+                <h3 style="color: #666; margin: 0 0 10px 0;">ไม่มีข้อมูล${title}</h3>
+                <p style="color: #999; font-size: 14px;">ไม่พบรายการที่ต้องการแสดง</p>
+                <button onclick="loadTabContent(currentTab)" style="
+                    margin-top: 20px;
+                    padding: 10px 20px;
+                    background: #1976d2;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: 600;
+                ">← กลับไปดูกราฟ</button>
+            </div>
+        `;
+        return;
+    }
+    
+    // สร้าง HTML ตาราง
+    const html = `
+        <div class="detail-table-container">
+            <!-- Header -->
+            <div class="detail-table-header">
+                <div class="detail-table-title">
+                    📋 ${title} <span style="opacity: 0.8; font-size: 14px;">(${data.length} รายการ)</span>
+                </div>
+                <button class="close-btn" onclick="loadTabContent(currentTab)">
+                    ✕ ปิด
+                </button>
+            </div>
+            
+            <!-- Scroll Hint -->
+            <div style="
+                background: #e3f2fd;
+                padding: 10px 20px;
+                border-bottom: 1px solid #90caf9;
+                text-align: center;
+                font-size: 13px;
+                color: #1565c0;
+            ">
+                💡 <strong>เลื่อนซ้าย-ขวา</strong> เพื่อดูข้อมูลทั้งหมด
+            </div>
+            
+            <!-- ตารางข้อมูล (รองรับ Horizontal Scroll) -->
+            <div class="detail-table-wrapper">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th style="
+                                position: sticky;
+                                left: 0;
+                                background: #37474f;
+                                color: white;
+                                z-index: 20;
+                                min-width: 50px;
+                                text-align: center;
+                            ">#</th>
+                            ${headers.map((header, index) => `
+                                <th style="
+                                    min-width: ${getColumnWidth(header, index)}px;
+                                    white-space: nowrap;
+                                ">${header}</th>
+                            `).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map((row, rowIndex) => `
+                            <tr>
+                                <td style="
+                                    position: sticky;
+                                    left: 0;
+                                    background: ${rowIndex % 2 === 0 ? '#fafafa' : 'white'};
+                                    font-weight: 600;
+                                    color: #666;
+                                    z-index: 10;
+                                    text-align: center;
+                                    border-right: 2px solid #ddd;
+                                ">${rowIndex + 1}</td>
+                                ${row.map((cell, cellIndex) => `
+                                    <td style="
+                                        white-space: nowrap;
+                                        max-width: 300px;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                    " title="${escapeHtml(cell)}">${formatCell(cell, headers[cellIndex])}</td>
+                                `).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- สรุปข้อมูล -->
+            <div style="
+                background: #f8f9fa;
+                padding: 15px 20px;
+                border-top: 2px solid #ddd;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <div style="font-size: 14px; color: #666;">
+                    📊 แสดง <strong>${data.length}</strong> รายการ
+                </div>
+                <button onclick="exportTableToCSV('${title}')" style="
+                    padding: 8px 16px;
+                    background: #4caf50;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                ">📥 Export CSV</button>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    console.log('✅ [displayDetailTable] แสดงตารางสำเร็จ');
+};
+
+/**
+ * กำหนดความกว้างของคอลัมน์ตามชื่อ
+ */
+function getColumnWidth(headerName, index) {
+    const widthMap = {
+        'วันที่': 120,
+        'Date': 120,
+        'บาร์โค้ด': 150,
+        'Barcode': 150,
+        'Tracking': 150,
+        'ผู้ดำเนินการ': 150,
+        'Operator': 150,
+        'สถานะ': 150,
+        'Status': 150,
+        'หมายเหตุ': 200,
+        'Remark': 200,
+        'Note': 200
+    };
+    
+    // ใช้ค่าที่กำหนดไว้ หรือ default 100px
+    return widthMap[headerName] || 100;
+}
+
+/**
+ * Format เซลล์ตามประเภทข้อมูล
+ */
+function formatCell(value, headerName) {
+    if (!value && value !== 0) return '-';
+    
+    // วันที่
+    if (headerName && (headerName.includes('วันที่') || headerName.includes('Date'))) {
+        try {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+                return date.toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        } catch (e) {
+            // ไม่ใช่วันที่
+        }
+    }
+    
+    // ตัวเลข
+    if (typeof value === 'number') {
+        return value.toLocaleString('th-TH');
+    }
+    
+    // สถานะ - เพิ่มสี
+    if (headerName && headerName.includes('สถานะ')) {
+        const status = value.toString().trim();
+        let color = '#666';
+        let bgColor = '#f5f5f5';
+        
+        if (status.includes('สำเร็จ') || status.includes('บันทึกแล้ว')) {
+            color = '#2e7d32';
+            bgColor = '#e8f5e9';
+        } else if (status.includes('รอ') || status.includes('ค้าง')) {
+            color = '#f57c00';
+            bgColor = '#fff3e0';
+        } else if (status.includes('ยกเลิก') || status.includes('ไม่')) {
+            color = '#c62828';
+            bgColor = '#ffebee';
+        }
+        
+        return `<span style="
+            display: inline-block;
+            padding: 4px 12px;
+            background: ${bgColor};
+            color: ${color};
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        ">${value}</span>`;
+    }
+    
+    return escapeHtml(value);
+}
+
+/**
+ * Escape HTML เพื่อป้องกัน XSS
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, m => map[m]);
+}
+
+/**
+ * Export ตารางเป็น CSV
+ */
+function exportTableToCSV(filename) {
+    console.log('📥 [exportTableToCSV] กำลัง Export:', filename);
+    
+    const table = document.querySelector('.detail-table');
+    if (!table) {
+        alert('ไม่พบตารางข้อมูล');
+        return;
+    }
+    
+    let csv = [];
+    
+    // Headers
+    const headers = [];
+    table.querySelectorAll('thead th').forEach((th, index) => {
+        if (index > 0) { // ข้าม # column
+            headers.push(th.textContent.trim());
+        }
+    });
+    csv.push(headers.join(','));
+    
+    // Rows
+    table.querySelectorAll('tbody tr').forEach(tr => {
+        const row = [];
+        tr.querySelectorAll('td').forEach((td, index) => {
+            if (index > 0) { // ข้าม # column
+                let value = td.textContent.trim();
+                // ถ้ามี comma ให้ใส่ double quotes
+                if (value.includes(',')) {
+                    value = `"${value}"`;
+                }
+                row.push(value);
+            }
+        });
+        csv.push(row.join(','));
+    });
+    
+    // Download
+    const csvContent = '\uFEFF' + csv.join('\n'); // \uFEFF = BOM สำหรับ UTF-8
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('✅ [exportTableToCSV] Export สำเร็จ');
+}
     console.log('🎉 [COMPONENT] DashboardComponent.html โหลดเสร็จสมบูรณ์');
 </script>
