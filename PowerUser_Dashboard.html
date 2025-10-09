@@ -510,7 +510,49 @@
                 </div>
                 <?!= include('DashboardComponent'); ?>
             `;
+            document.getElementById('drilldownContent').innerHTML = html;
             
+            // โหลด Component
+            if (typeof loadWorkData === 'function') {
+                loadWorkData(emp.workData);
+            }
+        }
+        
+        // เริ่มต้นโหลดทีม
+        window.addEventListener('load', function() {
+            loadTeamGrid();
+        });
+        
+        // Action Functions
+        function goHome() {
+            location.reload();
+        }
+        
+        function openP301() {
+            window.open('https://example.com/p301', '_blank');
+        }
+        
+        function openReport() {
+            window.open('https://example.com/report', '_blank');
+        }
+        
+        function openReturn() {
+            window.open('https://example.com/return', '_blank');
+        }
+        
+        function handleLogout() {
+            if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+                google.script.run
+                    .withSuccessHandler(() => {
+                        localStorage.clear();
+                        location.reload();
+                    })
+                    .logout(currentUser.token);
+            }
+        }
+    </script>
+</body>
+</html>
             
     </script>
 </body>
