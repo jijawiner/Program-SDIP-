@@ -273,50 +273,34 @@ function createErrorPage(title, message) {
 function getCachedUserData() {
   const CACHE_KEY = 'USER_DATABASE';
   const CACHE_DURATION = 300; // 5 นาที
-  const SHEET_NAME = 'SDIP Employee Database';
-  
+
   const cache = CacheService.getScriptCache();
   let cachedData = cache.get(CACHE_KEY);
-  
+
   if (cachedData) {
     console.log('⚡ [CACHE HIT] ใช้ข้อมูล User จาก Cache');
     return JSON.parse(cachedData);
   }
-  
-  console.log('📊 [CACHE MISS] อ่านข้อมูล User จาก Sheet...');
-  
+
+  console.log('🔥 [CACHE MISS] อ่านข้อมูล User จาก Firebase...');
+
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-    
-    if (!sheet) {
-      throw new Error(`ไม่พบ Sheet "${SHEET_NAME}"`);
+    // ⭐ แก้ไข: อ่านจาก Firebase แทน Sheets
+    const users = firebaseGetAllUsers();
+
+    if (!users || Object.keys(users).length === 0) {
+      console.warn('⚠️ [CACHE] ไม่พบข้อมูล Users ใน Firebase');
+      return {};
     }
-    
-    const data = sheet.getDataRange().getValues();
-    const userMap = {};
-    let validUserCount = 0;
-    
-    // วนอ่านข้อมูล (ข้ามแถวแรกที่เป็น Header)
-    for (let i = 1; i < data.length; i++) {
-      const username = (data[i][1] || '').toString().trim();
-      
-      if (username) {
-        userMap[username] = {
-          password: (data[i][2] || '').toString(),
-          role: (data[i][3] || 'User').toString().trim(),
-          rowIndex: i + 1
-        };
-        validUserCount++;
-      }
-    }
-    
-    console.log(`✅ [CACHE] โหลด ${validUserCount} Users สำเร็จ`);
-    
+
+    const validUserCount = Object.keys(users).length;
+    console.log(`✅ [CACHE] โหลด ${validUserCount} Users สำเร็จจาก Firebase`);
+
     // เก็บลง Cache
-    cache.put(CACHE_KEY, JSON.stringify(userMap), CACHE_DURATION);
-    
-    return userMap;
-    
+    cache.put(CACHE_KEY, JSON.stringify(users), CACHE_DURATION);
+
+    return users;
+
   } catch (error) {
     console.error(`❌ [CACHE ERROR] ${error.toString()}`);
     return {};
@@ -376,16 +360,15 @@ function userLogin(formData) {
       // สร้าง Session Token
       const token = Utilities.getUuid();
       const expiration = new Date().getTime() + (2 * 24 * 60 * 60 * 1000); // 2 วัน
-      
-      // เก็บ Session
-      const userProperties = PropertiesService.getUserProperties();
-      userProperties.setProperty(token, JSON.stringify({
+
+      // ⭐ แก้ไข: เก็บ Session ใน Firebase แทน PropertiesService
+      firebaseSetSession(token, {
         username: username,
         role: user.role,
         expires: expiration,
         loginTime: new Date().toISOString(),
         lastActivity: new Date().toISOString()
-      }));
+      });
       
       const processTime = new Date().getTime() - startTime;
       console.log(`⚡ [${functionName}] ใช้เวลา ${processTime}ms`);
@@ -431,26 +414,25 @@ function checkSessionToken(token) {
   }
   
   try {
-    const userProperties = PropertiesService.getUserProperties();
-    const sessionData = userProperties.getProperty(token);
-    
-    if (!sessionData) {
-      console.log(`❌ [${functionName}] Token ไม่ถูกต้อง`);
+    // ⭐ แก้ไข: ดึง Session จาก Firebase แทน PropertiesService
+    const session = firebaseGetSession(token);
+
+    if (!session) {
+      console.log(`❌ [${functionName}] Token ไม่ถูกต้อง หรือหมดอายุ`);
       return { status: 'invalid', reason: 'token ไม่ถูกต้อง' };
     }
-    
-    const session = JSON.parse(sessionData);
+
     const currentTime = new Date().getTime();
-    
+
     // ตรวจสอบอายุ Token
     if (currentTime < session.expires) {
-      // ต่ออายุ Token และอัพเดท Last Activity
+      // ⭐ ต่ออายุ Token และอัพเดท Last Activity ใน Firebase
       session.expires = currentTime + (2 * 24 * 60 * 60 * 1000);
       session.lastActivity = new Date().toISOString();
-      userProperties.setProperty(token, JSON.stringify(session));
-      
+      firebaseSetSession(token, session);
+
       console.log(`✅ [${functionName}] Token ถูกต้อง: ${session.username}`);
-      
+
       return {
         status: 'valid',
         username: session.username,
@@ -458,8 +440,8 @@ function checkSessionToken(token) {
         loginTime: session.loginTime
       };
     } else {
-      // Token หมดอายุ
-      userProperties.deleteProperty(token);
+      // Token หมดอายุ - ลบออกจาก Firebase
+      firebaseDeleteSession(token);
       console.log(`⏰ [${functionName}] Token หมดอายุ`);
       return { status: 'invalid', reason: 'Session หมดอายุ' };
     }
@@ -478,23 +460,22 @@ function checkSessionToken(token) {
  */
 function logout(token) {
   const functionName = 'logout';
-  
+
   try {
     if (token) {
-      const userProperties = PropertiesService.getUserProperties();
-      const sessionData = userProperties.getProperty(token);
-      
-      if (sessionData) {
-        const session = JSON.parse(sessionData);
+      // ⭐ แก้ไข: ดึงและลบ Session จาก Firebase
+      const session = firebaseGetSession(token);
+
+      if (session) {
         console.log(`🚪 [${functionName}] ${session.username} ออกจากระบบ`);
       }
-      
-      userProperties.deleteProperty(token);
+
+      firebaseDeleteSession(token);
       return { status: 'success', message: 'ออกจากระบบเรียบร้อย' };
     }
-    
+
     return { status: 'success', message: 'ไม่มี Session ให้ลบ' };
-    
+
   } catch (error) {
     console.error(`❌ [${functionName}] Error: ${error.toString()}`);
     return { status: 'error', message: 'เกิดข้อผิดพลาด' };
@@ -1752,34 +1733,45 @@ function generateStatCard(title, value, color) {
 function getUserWorkOverview(username) {
   const functionName = 'getUserWorkOverview';
   const startTime = new Date().getTime();
-  
+
   try {
     console.log(`📊 [${functionName}] ดึงข้อมูลสำหรับ: ${username}`);
-    
+
+    // ⭐ แก้ไข: ลองดึงจาก Firebase ก่อน
+    const cachedWorkData = firebaseGetWorkData(username);
+
+    if (cachedWorkData) {
+      const processTime = new Date().getTime() - startTime;
+      console.log(`⚡ [${functionName}] ใช้ข้อมูลจาก Firebase (${processTime}ms)`);
+      return cachedWorkData;
+    }
+
+    console.log(`📊 [${functionName}] ไม่พบใน Firebase - อ่านจาก Sheets...`);
+
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    
+
     // ดึงข้อมูลจากชีตจริง (ชื่อตามไฟล์ Excel)
     const wrpData = getDataFromSheet(spreadsheet, 'SDIP WRP รายละเอียด', username);
     const wmsData = getDataFromSheet(spreadsheet, 'SDIP WMS เงินที่ต้องนำส่ง', username);
-    
+
     // งานค้างแยกตาม R/EMS/COD
     const backlogR = getDataFromSheet(spreadsheet, 'SDIP Backlog R', username);
     const backlogEMS = getDataFromSheet(spreadsheet, 'SDIP Backlog EMS', username);
     const backlogCOD = getDataFromSheet(spreadsheet, 'SDIP Backlog COD', username);
-    
+
     // งานคืนแยกตาม R/EMS/COD
     const returnedR = getDataFromSheet(spreadsheet, 'SDIP Returned R', username);
     const returnedEMS = getDataFromSheet(spreadsheet, 'SDIP Returned  EMS', username);
     const returnedCOD = getDataFromSheet(spreadsheet, 'SDIP Returned  COD', username);
-    
+
     console.log(`📊 [${functionName}] WRP: ${wrpData.length}, WMS: ${wmsData.length}`);
     console.log(`📊 [${functionName}] Backlog R:${backlogR.length} EMS:${backlogEMS.length} COD:${backlogCOD.length}`);
     console.log(`📊 [${functionName}] Return R:${returnedR.length} EMS:${returnedEMS.length} COD:${returnedCOD.length}`);
-    
+
     // คำนวณสถิติ
-const sendMoneyStats = countNotSentMoney(wmsData);
-const overview = {
-  sendMoney: sendMoneyStats,
+    const sendMoneyStats = countNotSentMoney(wmsData);
+    const overview = {
+      sendMoney: sendMoneyStats,
       prepare: calculateByType(wrpData),
       recorded: calculateRecorded(wrpData),
       backlog: {
@@ -1795,16 +1787,19 @@ const overview = {
         total: returnedR.length + returnedEMS.length + returnedCOD.length
       }
     };
-    
+
+    // ⭐ บันทึกลง Firebase เพื่อใช้ครั้งต่อไป
+    firebaseSetWorkData(username, overview);
+
     const processTime = new Date().getTime() - startTime;
     console.log(`✅ [${functionName}] สำเร็จ (${processTime}ms)`);
     console.log(`📊 [${functionName}] ผลลัพธ์:`, JSON.stringify(overview));
-    
+
     return overview;
-    
+
   } catch (error) {
     console.error(`❌ [${functionName}] Error:`, error.toString());
-    
+
     return {
       sendMoney: { r: 0, ems: 0, cod: 0, total: 0 },
       prepare: { r: 0, ems: 0, cod: 0, total: 0 },
