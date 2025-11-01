@@ -1,0 +1,45 @@
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# Log files
+*.log
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+
+# Environment variables
+.env
+.env.local
+
+# Build files
+dist/
+build/
+
+# Google Apps Script
+.clasp.json
+.claspignore
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Test files
+coverage/
+*.test.js
